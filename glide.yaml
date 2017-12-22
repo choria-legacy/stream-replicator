@@ -1,0 +1,37 @@
+package: github.com/choria-io/stream-replicator
+import:
+- package: github.com/nats-io/go-nats-streaming
+  version: ~0.3.4
+- package: github.com/sirupsen/logrus
+  version: ~1.0.4
+- package: gopkg.in/alecthomas/kingpin.v2
+  version: ~2.2.6
+- package: github.com/onsi/ginkgo
+  version: ~1.4.0
+- package: github.com/onsi/gomega
+  version: ~1.2.0
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: github.com/alecthomas/template
+- package: github.com/alecthomas/units
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh/terminal
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+- package: github.com/nats-io/go-nats
+  version: ~1.4.0
+- package: github.com/gogo/protobuf
+  version: v0.5
+  subpackages:
+  - gogoproto
+  - proto
+- package: github.com/prometheus/client_golang
+  version: v0.9.0-pre1
+  subpackages:
+  - prometheus
+- package: github.com/beorn7/perks
+  subpackages:
+  - quantile
