@@ -15,9 +15,13 @@ When there are many workers or it's specified to belong to a queue group a Durab
 
 First time it connects it attempts to replicate all messages, as the subscription is Durable it will from then on continue where it left off.
 
+## Status
+
+This is a pretty new project and not yet used in production, use with caution and I'd love any feedback you might have
+
 ## Configuration
 
-A single configuration file can be used to configure multiple instances of the replicator.  
+A single configuration file can be used to configure multiple instances of the replicator.
 
 You'll run one or more processes per replicated topic but not 1 process for multiple topics - unless you use wildcards.
 
@@ -108,7 +112,7 @@ I intend to use this with Choria's NATS Stream adapter to build a registration d
                /  once / hour  \
              /                  \
       /--------\              /--------\
-      | stream |              | stream |  
+      | stream |              | stream |
       \--------/              \--------/
 
   /////||||||||\\\\\      /////||||||||\\\\\
@@ -142,7 +146,7 @@ This is specifically designed to work with the Choria NATS Stream Adapter.
 
 ## About client and queue group names
 
-By default if you replicate topic `foo.bar` the client name for the replicator will be `foo_bar_stream_replicator_n` where `n` is the number of the worker.  
+By default if you replicate topic `foo.bar` the client name for the replicator will be `foo_bar_stream_replicator_n` where `n` is the number of the worker.
 
 If a group is needed - like when workers is > 1 or `queued` is set the group will be called `foo_bar_stream_replicator_grp`.
 
