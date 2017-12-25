@@ -2,52 +2,32 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
+	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/replicator"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	debug   bool
-	verbose bool
-	rep     = replicator.Copier{}
-	cancel  func()
-	ctx     context.Context
-	mport   int
-	// seq     int
-	// all     bool
-	// last    bool
-	// startd  time.Duration
+	rep    = replicator.Copier{}
+	cancel func()
+	ctx    context.Context
 )
 
 func Run() {
-	app := kingpin.New("natsreplicate", "NATS Stream Topic Replicator")
+	app := kingpin.New("stream-replicator", "NATS Stream Topic Replicator")
 	app.Author("R.I.Pienaar <rip@devco.net>")
-	app.UsageTemplate(kingpin.SeparateOptionalFlagsUsageTemplate)
 
-	app.Flag("name", "Replicator name").StringVar(&rep.Name)
-	app.Flag("topic", "Topic to replicate").Required().StringVar(&rep.Topic)
-	app.Flag("from", "NATS Stream cluster host URL(s) to replicate from").Required().StringVar(&rep.From)
-	app.Flag("from-id", "Cluster ID for the source cluster").Required().StringVar(&rep.FromID)
-	app.Flag("to", "NATS Stream cluster host URL(s) to replicate to").Required().StringVar(&rep.To)
-	app.Flag("to-id", "Cluster ID for the target cluster").Required().StringVar(&rep.ToID)
-	app.Flag("workers", "Number of workers to start").Default("1").IntVar(&rep.Workers)
-	app.Flag("queued", "Subscribe to a queue group, true when workers > 0").BoolVar(&rep.Queued)
-	app.Flag("verbose", "Set verbose logging").Default("false").BoolVar(&verbose)
-	app.Flag("debug", "Set debug logging").Default("false").BoolVar(&debug)
-	app.Flag("monitor", "Port to listen for Prometheus requests on /metrics").IntVar(&mport)
-	// app.Flag("seq", "Start replicating from a specific sequence").IntVar(&seq)
-	// app.Flag("all", "Replicate all available messages").BoolVar(&all)
-	// app.Flag("last", "Start replicating from the last message").BoolVar(&last)
-	// app.Flag("since", "Start delivering messages from a specific time").DurationVar(&startd)
+	cfile := ""
+	topic := ""
+
+	app.Flag("config", "Configuration file").StringVar(&cfile)
+	app.Flag("topic", "Topic to replicate").Required().StringVar(&topic)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
@@ -56,22 +36,23 @@ func Run() {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
+	err := config.Load(cfile)
+	if err != nil {
+		kingpin.Fatalf("Could not parse configuration: %s", err.Error())
+	}
+
 	configureLogging()
+
+	topicconf, err := config.Topic(topic)
+	if err != nil {
+		kingpin.Fatalf("Could not find a configuration for topic %s in the config file %s", topic, cfile)
+	}
 
 	go interruptHandler()
 
-	if mport > 0 {
-		go setupPrometheus()
-	}
-
-	startReplicator(ctx, wg, done)
+	startReplicator(ctx, wg, done, topicconf)
 
 	wg.Wait()
-}
-
-func setupPrometheus() {
-	http.Handle("/metrics", promhttp.Handler())
-	logrus.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", mport), nil))
 }
 
 func interruptHandler() {
@@ -89,11 +70,15 @@ func interruptHandler() {
 	}
 }
 
-func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int) {
-	err := rep.Setup()
+func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic config.TopicConf) {
+	err := rep.Setup(topic)
 	if err != nil {
 		logrus.Errorf("Could not configure Replicator: %s", err.Error())
 		return
+	}
+
+	if topic.MonitorPort > 0 {
+		go rep.SetupPrometheus(topic.MonitorPort)
 	}
 
 	wg.Add(1)
@@ -101,13 +86,24 @@ func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int) {
 }
 
 func configureLogging() {
+	if config.LogFile() != "" {
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+
+		file, err := os.OpenFile(config.LogFile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			kingpin.Fatalf("Cannot open log file %s: %s", config.LogFile(), err.Error())
+		}
+
+		logrus.SetOutput(file)
+	}
+
 	logrus.SetLevel(logrus.InfoLevel)
 
-	if verbose {
+	if config.Verbose() {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 
-	if debug {
+	if config.Debug() {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 }

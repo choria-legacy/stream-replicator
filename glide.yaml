@@ -35,3 +35,9 @@ import:
 - package: github.com/beorn7/perks
   subpackages:
   - quantile
+- package: gopkg.in/yaml.v2
+- package: github.com/tidwall/gjson
+  version: ~1.0.5
+- package: github.com/tidwall/match
+- package: github.com/ghodss/yaml
+  version: ~1.0.0

@@ -3,65 +3,68 @@ package replicator
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/choria-io/stream-replicator/config"
+	"github.com/choria-io/stream-replicator/limiter"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
 
 type Copier struct {
-	Name       string
-	Topic      string
-	From       string
-	FromID     string
-	To         string
-	ToID       string
-	Workers    int
-	Queued     bool
-	QueueGroup string
+	config config.TopicConf
 
 	Log *logrus.Entry
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup() error {
-	if c.Topic == "" {
+func (c *Copier) Setup(topic config.TopicConf) error {
+	c.config = topic
+
+	if c.config.Topic == "" {
 		return fmt.Errorf("A topic is required")
 	}
 
-	if c.From == "" {
-		c.From = "nats://localhost:4222"
+	if c.config.SourceURL == "" {
+		c.config.SourceURL = "nats://localhost:4222"
 	}
 
-	if c.FromID == "" {
+	if c.config.SourceID == "" {
 		return fmt.Errorf("A from cluster id is required")
 	}
 
-	if c.To == "" {
+	if c.config.TargetURL == "" {
 		return fmt.Errorf("A destination URL is required")
 	}
 
-	if c.ToID == "" {
+	if c.config.TargetID == "" {
 		return fmt.Errorf("A target cluster id is required")
 	}
 
-	if c.Workers == 0 {
-		c.Workers = 1
+	if c.config.Workers == 0 {
+		c.config.Workers = 1
 	}
 
-	if c.Name == "" {
-		c.Name = fmt.Sprintf("%s_stream_replicator", strings.Replace(c.Topic, ".", "_", -1))
+	if c.config.Name == "" {
+		c.config.Name = fmt.Sprintf("%s_stream_replicator", strings.Replace(c.config.Topic, ".", "_", -1))
 	}
 
-	if c.Workers > 1 {
-		c.Queued = true
+	if c.config.Workers > 1 {
+		c.config.Queued = true
 	}
 
-	if c.Queued && c.QueueGroup == "" {
-		c.QueueGroup = fmt.Sprintf("%s_stream_replicator_grp", strings.Replace(c.Topic, ".", "_", -1))
+	if c.config.Queued && c.config.QueueGroup == "" {
+		c.config.QueueGroup = fmt.Sprintf("%s_stream_replicator_grp", strings.Replace(c.config.Topic, ".", "_", -1))
 	}
 
-	c.Log = logrus.WithFields(logrus.Fields{"topic": c.Topic, "workers": c.Workers, "name": c.Name, "queue": c.QueueGroup})
+	c.Log = logrus.WithFields(logrus.Fields{"topic": c.config.Topic, "workers": c.config.Workers, "name": c.config.Name, "queue": c.config.QueueGroup})
+
+	if c.config.Inspect != "" && c.config.MinAge != "" {
+		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
+		limiter.Configure(c.config, &limiter.Memory{})
+	}
 
 	return nil
 }
@@ -69,9 +72,14 @@ func (c *Copier) Setup() error {
 func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	for i := 0; i < c.Workers; i++ {
-		w := NewWorker(i, c)
+	for i := 0; i < c.config.Workers; i++ {
+		w := NewWorker(i, c.config, c.Log)
 		wg.Add(1)
 		go w.Run(ctx, wg)
 	}
+}
+
+func (c *Copier) SetupPrometheus(port int) {
+	http.Handle("/metrics", promhttp.Handler())
+	c.Log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
