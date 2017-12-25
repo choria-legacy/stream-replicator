@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/choria-io/stream-replicator/backoff"
+	"github.com/choria-io/stream-replicator/config"
+	"github.com/choria-io/stream-replicator/limiter"
 	nats "github.com/nats-io/go-nats"
 	stan "github.com/nats-io/go-nats-streaming"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,16 +20,16 @@ type worker struct {
 
 	from   stan.Conn
 	to     stan.Conn
-	copier *Copier
+	config config.TopicConf
 	log    *logrus.Entry
 	sub    stan.Subscription
 }
 
-func NewWorker(i int, c *Copier) *worker {
+func NewWorker(i int, config config.TopicConf, log *logrus.Entry) *worker {
 	w := worker{
-		name:   fmt.Sprintf("%s_%d", c.Name, i),
-		log:    c.Log.WithFields(logrus.Fields{"worker": i}),
-		copier: c,
+		name:   fmt.Sprintf("%s_%d", config.Name, i),
+		log:    log.WithFields(logrus.Fields{"worker": i}),
+		config: config,
 	}
 
 	return &w
@@ -44,14 +46,13 @@ func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	err = w.subscribe()
 	if err != nil {
-		w.log.Errorf("Could not subscribe to source %s", w.copier.Topic)
+		w.log.Errorf("Could not subscribe to source %s", w.config.Topic)
 		return
 	}
 
 	select {
 	case <-ctx.Done():
 		w.log.Infof("%s existing", w.name)
-		w.sub.Unsubscribe()
 		w.from.Close()
 		w.to.Close()
 
@@ -60,40 +61,53 @@ func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (w *worker) copyf(msg *stan.Msg) {
-	obs := prometheus.NewTimer(processTime.WithLabelValues(w.name, w.copier.Name))
+	obs := prometheus.NewTimer(processTime.WithLabelValues(w.name, w.config.Name))
 	defer obs.ObserveDuration()
 
-	err := w.to.Publish(w.copier.Topic, msg.Data)
-	if err != nil {
-		w.log.Errorf("Could not publish message %d: %s", msg.Sequence, err.Error())
-		failedCtr.WithLabelValues(w.name, w.copier.Name).Inc()
-		return
-	}
+	receivedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 
-	copiedCtr.WithLabelValues(w.name, w.copier.Name).Inc()
+	limiter.Process(msg, func(msg *stan.Msg, process bool) error {
+		if process {
+			// specifically publish to the subject the message
+			// was received on, this way we support wildcard subscriptions
+			// that will replicate to the right target
+			err := w.to.Publish(msg.Subject, msg.Data)
+			if err != nil {
+				w.log.Errorf("Could not publish message %d: %s", msg.Sequence, err.Error())
+				failedCtr.WithLabelValues(w.name, w.config.Name).Inc()
+				return err
+			}
 
-	err = msg.Ack()
-	if err != nil {
-		ackFailedCtr.WithLabelValues(w.name, w.copier.Name).Inc()
-		w.log.Errorf("Could not ack message %d: %s", msg.Sequence, err.Error())
-	}
+			copiedCtr.WithLabelValues(w.name, w.config.Name).Inc()
+		}
+
+		sequenceGauge.WithLabelValues(w.name, w.config.Name).Set(float64(msg.Sequence))
+
+		err := msg.Ack()
+		if err != nil {
+			ackFailedCtr.WithLabelValues(w.name, w.config.Name).Inc()
+			w.log.Errorf("Could not ack message %d: %s", msg.Sequence, err.Error())
+		}
+
+		return err
+	})
 }
 
 func (w *worker) subscribe() error {
 	opts := []stan.SubscriptionOption{
-		stan.DurableName(w.copier.Name),
+		stan.DurableName(w.config.Name),
 		stan.DeliverAllAvailable(),
 		stan.SetManualAckMode(),
 	}
 
 	var err error
 
-	if w.copier.Queued {
-		w.log.Infof("subscribing to %s in queue group %s", w.copier.Topic, w.copier.QueueGroup)
-		w.sub, err = w.from.QueueSubscribe(w.copier.Topic, w.copier.QueueGroup, w.copyf, opts...)
+	if w.config.Queued {
+		w.log.Infof("subscribing to %s in queue group %s", w.config.Topic, w.config.QueueGroup)
+		w.sub, err = w.from.QueueSubscribe(w.config.Topic, w.config.QueueGroup, w.copyf, opts...)
 	} else {
-		w.log.Infof("subscribing to %s", w.copier.Topic)
-		w.sub, err = w.from.Subscribe(w.copier.Topic, w.copyf, opts...)
+		w.log.Infof("subscribing to %s", w.config.Topic)
+		w.sub, err = w.from.Subscribe(w.config.Topic, w.copyf, opts...)
 	}
 
 	return err
@@ -105,13 +119,13 @@ func (w *worker) connect(ctx context.Context) error {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		w.from = w.connectSTAN(ctx, w.copier.FromID, w.name, w.copier.From)
+		w.from = w.connectSTAN(ctx, w.config.SourceID, w.name, w.config.SourceURL)
 	}(wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		w.to = w.connectSTAN(ctx, w.copier.ToID, w.name, w.copier.To)
+		w.to = w.connectSTAN(ctx, w.config.TargetID, w.name, w.config.TargetURL)
 	}(wg)
 
 	wg.Wait()
@@ -211,7 +225,7 @@ func (w *worker) disconCb(nc *nats.Conn) {
 
 func (w *worker) reconCb(nc *nats.Conn) {
 	w.log.Warnf("%s NATS client reconnected after a previous disconnection, connected to %s", nc.Opts.Name, nc.ConnectedUrl())
-	reconnectCtr.WithLabelValues(w.name, w.copier.Name).Inc()
+	reconnectCtr.WithLabelValues(w.name, w.config.Name).Inc()
 }
 
 func (w *worker) closedCb(nc *nats.Conn) {
@@ -223,10 +237,10 @@ func (w *worker) closedCb(nc *nats.Conn) {
 		w.log.Warnf("%s NATS client connection closed", nc.Opts.Name)
 	}
 
-	closedCtr.WithLabelValues(w.name, w.copier.Name).Inc()
+	closedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 }
 
 func (w *worker) errorCb(nc *nats.Conn, sub *nats.Subscription, err error) {
 	w.log.Errorf("%s NATS client on %s encountered an error: %s", nc.Opts.Name, nc.ConnectedUrl(), err.Error())
-	errorCtr.WithLabelValues(w.name, w.copier.Name).Inc()
+	errorCtr.WithLabelValues(w.name, w.config.Name).Inc()
 }

@@ -5,6 +5,11 @@ import (
 )
 
 var (
+	receivedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "stream_replicator_received_msgs",
+		Help: "How many messages were received",
+	}, []string{"name", "worker"})
+
 	copiedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "stream_replicator_copied_msgs",
 		Help: "How many messages were copied",
@@ -39,9 +44,15 @@ var (
 		Name: "stream_replicator_connection_errors",
 		Help: "Number of times the connection encountered an error",
 	}, []string{"name", "worker"})
+
+	sequenceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "stream_replicator_current_sequence",
+		Help: "The current sequence number being copied",
+	}, []string{"name", "worker"})
 )
 
 func init() {
+	prometheus.MustRegister(receivedCtr)
 	prometheus.MustRegister(copiedCtr)
 	prometheus.MustRegister(failedCtr)
 	prometheus.MustRegister(ackFailedCtr)
@@ -49,4 +60,5 @@ func init() {
 	prometheus.MustRegister(reconnectCtr)
 	prometheus.MustRegister(closedCtr)
 	prometheus.MustRegister(errorCtr)
+	prometheus.MustRegister(sequenceGauge)
 }
