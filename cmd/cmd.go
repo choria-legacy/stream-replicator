@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"sync"
@@ -14,20 +16,24 @@ import (
 )
 
 var (
-	rep    = replicator.Copier{}
-	cancel func()
-	ctx    context.Context
+	rep     = replicator.Copier{}
+	cancel  func()
+	ctx     context.Context
+	version string
 )
 
 func Run() {
 	app := kingpin.New("stream-replicator", "NATS Stream Topic Replicator")
 	app.Author("R.I.Pienaar <rip@devco.net>")
+	app.Version(version)
 
 	cfile := ""
 	topic := ""
+	pidfile := ""
 
 	app.Flag("config", "Configuration file").StringVar(&cfile)
 	app.Flag("topic", "Topic to replicate").Required().StringVar(&topic)
+	app.Flag("pid", "Write running PID to a file").StringVar(&pidfile)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
@@ -50,9 +56,21 @@ func Run() {
 
 	go interruptHandler()
 
+	writePID(pidfile)
 	startReplicator(ctx, wg, done, topicconf)
 
 	wg.Wait()
+}
+
+func writePID(pidfile string) {
+	if pidfile == "" {
+		return
+	}
+
+	err := ioutil.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
+	if err != nil {
+		kingpin.Fatalf("Could not write PID: %s", err.Error())
+	}
 }
 
 func interruptHandler() {

@@ -1,0 +1,13 @@
+[Unit]
+Description=Choria NATS Stream Replicator for Topic %I
+After=network.target
+
+[Service]
+StandardOutput=syslog
+StandardError=syslog
+User=nobody
+Group=nobody
+ExecStart={{bindir}}/{{pkgname}} --config={{etcdir}}/sr.yaml --topic=%i
+
+[Install]
+WantedBy=multi-user.target

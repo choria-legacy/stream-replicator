@@ -99,7 +99,7 @@ This will automatically create a Queue Group name based on the topic and so all 
 
 See the nodes below about cliet names and queue group names though if you wish to scale this to multiple nodes.
 
-## Inspecting and limiting replication of dupelicated data
+## Inspecting and limiting replication of duplicated data
 
 I intend to use this with Choria's NATS Stream adapter to build a registration database.  My nodes will publish their metadata regularly but outside of the local network I don't really need it that regular.
 

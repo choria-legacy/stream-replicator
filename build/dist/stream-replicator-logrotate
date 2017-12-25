@@ -1,0 +1,5 @@
+/var/log/{{pkgname}}.log {
+  copytruncate
+  daily
+  rotate 10
+}
