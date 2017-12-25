@@ -1,4 +1,4 @@
-# What?
+# NATS Streaming Topic Replicator
 
 This is a tool that consumes 1 topic in a NATS Streaming server and replicates it to another NATS Streaming server.
 

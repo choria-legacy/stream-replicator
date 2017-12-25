@@ -41,3 +41,7 @@ import:
 - package: github.com/tidwall/match
 - package: github.com/ghodss/yaml
   version: ~1.0.0
+- package: golang.org/x/text
+  subpackages:
+  - encoding/charmap
+  - encoding
