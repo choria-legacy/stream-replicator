@@ -1,5 +1,5 @@
-hash: 7ffc3f568458fc42e59473030c8d34df4620bba3b33bf0265e7afff6d8a708aa
-updated: 2017-12-25T16:21:04.062226Z
+hash: 7b035a8d34073034ead13321fc928c16899cbc7d0eb84dbb2fae52ae79064d89
+updated: 2017-12-25T17:19:46.704498Z
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -40,8 +40,38 @@ imports:
   version: 289cccf02c178dc782430d534e3c1f5b72af807f
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/spec_iterator
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
 - name: github.com/onsi/gomega
   version: c893efa28eb45626cdaa76c9f653b62488858837
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
 - name: github.com/prometheus/client_golang
   version: 967789050ba94deca04a5e84cce8ad472ce313c1
   subpackages:
@@ -75,10 +105,31 @@ imports:
   version: dc871a5d77e227f5bbf6545176ef3eeebf87e76e
   subpackages:
   - context
+  - html
+  - html/atom
+  - html/charset
 - name: golang.org/x/sys
   version: f7928cfef4d09d1b080aa2b6fd3ca9ba1567c733
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: eb22672bea55af56d225d4e35405f4d2e9f062a0
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
+  - transform
 - name: gopkg.in/alecthomas/kingpin.v2
   version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/yaml.v2

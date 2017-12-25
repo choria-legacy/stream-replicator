@@ -25,6 +25,8 @@ func (m *Memory) Configure(key string, age time.Duration) error {
 
 	m.seen = make(map[string]time.Time)
 
+	go m.scrub()
+
 	return nil
 }
 
