@@ -9,6 +9,7 @@ import (
 
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/limiter"
+	"github.com/choria-io/stream-replicator/limiter/memory"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
@@ -63,7 +64,7 @@ func (c *Copier) Setup(topic config.TopicConf) error {
 
 	if c.config.Inspect != "" && c.config.MinAge != "" {
 		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
-		limiter.Configure(c.config, &limiter.Memory{})
+		limiter.Configure(c.config, &memory.Limiter{})
 	}
 
 	return nil

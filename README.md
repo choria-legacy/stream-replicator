@@ -97,7 +97,7 @@ topics:
 
 This will automatically create a Queue Group name based on the topic and so all workers will belong to the same group.  If you set up the same configuration on a 2nd node it too will join the same group and so load share the replication duty.
 
-See the nodes below about cliet names and queue group names though if you wish to scale this to multiple nodes.
+See the notes below about client names and queue group names though if you wish to scale this to multiple nodes.
 
 ## Inspecting and limiting replication of duplicated data
 
@@ -165,11 +165,11 @@ topics:
         queue_group: cmdb
 ```
 
-This will start workers with names `cmdb_replicatorA_0`...`cmdb_replicatorA_0` all belonging to the same queue group.  On another node set `name: cmdb_replicatorB` and so forth.
+This will start workers with names `cmdb_replicatorA_0`...`cmdb_replicatorA_9` all belonging to the same queue group.  On another node set `name: cmdb_replicatorB` and so forth.
 
 NOTE: This is likely to change in future releases, right now I don't need multi node scaled replicators so once I do this will be made easier (or file a issue)
 
-## Prometheus Metrics
+## Prometheus Metrics
 
 Stats are exposed as prometheus metrics, some info about what gets exposed below:
 
@@ -186,3 +186,23 @@ In all cases the `name` label is the configured name or generated one as describ
 |`stream_replicator_connection_closed`|How many times did the NATS connection close|
 |`stream_replicator_connection_errors`|How many times did the NATS connection encounter errors|
 |`stream_replicator_current_sequence`|The current sequence per worker, this is kind of not useful in pooled workers since messages are tried in any order, but in a single worker scenario this can help you discover how far behind you are|
+|`stream_replicator_limiter_memory_seen`|When inspecting the messages this shows the current size of the known list in the memory limiter - the list is scrubbed every `min_age` + 10 minutes of within that time.|
+|`stream_replicator_limiter_memory_skipped`|Number of times the memory limiter determined a message should be skipped|
+|`stream_replicator_limiter_memory_passed`|Number of times the memory limiter allowed a message to be processed|
+|`stream_replicator_limiter_memory_errors`|Number of times the processor function returned an error|
+
+## Packages
+
+RPMs will be in the Choria yum repository for el6 and 7 64bit systems:
+
+```ini
+[choria]
+name=Choria Orchestrator - $architecture
+baseurl=https://dl.bintray.com/choria/el-yum/el$releasever/$basearch
+gpgcheck=0
+repo_gpgcheck=0
+enabled=1
+protect=1
+```
+
+On a RHEL7 system the systemd unit files are using templating, if you have a configuration section for `cmdb` you would run that using `systemctl start stream-replicator@cmdb`.
