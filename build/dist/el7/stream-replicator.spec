@@ -66,7 +66,7 @@ fi
 
 %files
 %if 0%{?manage_conf} > 0
-%config(noreplace)%{etcdir}/sr.yaml
+%attr(640, root, nobody) %config(noreplace)%{etcdir}/sr.yaml
 %endif
 %{bindir}/%{pkgname}
 /etc/logrotate.d/%{pkgname}

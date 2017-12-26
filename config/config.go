@@ -13,7 +13,7 @@ type replications struct {
 	Topics  map[string]TopicConf `json:"topics"`
 	Debug   bool
 	Verbose bool
-	Logfile string `json:"log"`
+	Logfile string `json:"logfile"`
 }
 
 // TopicConf is the configuration for a specific topic

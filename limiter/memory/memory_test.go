@@ -1,4 +1,4 @@
-package limiter
+package memory
 
 import (
 	"testing"
@@ -10,14 +10,14 @@ import (
 
 func TestFederation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Memory")
+	RunSpecs(t, "Limiter/Memory")
 }
 
-var _ = Describe("Memeory", func() {
-	var m Memory
+var _ = Describe("Limiter/Memory", func() {
+	var m Limiter
 
 	BeforeEach(func() {
-		m = Memory{}
+		m = Limiter{}
 	})
 
 	var _ = Describe("Configure", func() {
@@ -61,7 +61,7 @@ var _ = Describe("Memeory", func() {
 			m.Configure("k", time.Duration(1*time.Minute))
 
 			m.seen["new"] = time.Now()
-			m.seen["old"] = time.Now().Add(-61 * time.Second)
+			m.seen["old"] = time.Now().Add((-61 * time.Second) - (10 * time.Minute))
 			m.scrubber()
 			Expect(m.seen).ToNot(HaveKey("old"))
 			Expect(m.seen).To(HaveKey("new"))
