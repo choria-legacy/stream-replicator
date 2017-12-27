@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -123,7 +122,6 @@ func (m *Limiter) scrubber() {
 	killtime := time.Now().Add((-1 * m.age) - (10 * time.Minute))
 
 	for i, t := range m.seen {
-		fmt.Printf("(%s) %s: %s < %s\n", time.Now(), i, t, killtime)
 		if t.Before(killtime) {
 			delete(m.seen, i)
 		}
