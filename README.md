@@ -17,7 +17,9 @@ First time it connects it attempts to replicate all messages, as the subscriptio
 
 ## Status
 
-This is a pretty new project and not yet used in production, use with caution and I'd love any feedback you might have
+This is a pretty new project and not yet used in production, use with caution and I'd love any feedback you might have - especially design ideas about multi worker order preserving replication!
+
+Initial packages for el6 and el7 64bit systems are now on the Choria YUM repository, see below.
 
 ## Configuration
 
@@ -193,7 +195,7 @@ In all cases the `name` label is the configured name or generated one as describ
 
 ## Packages
 
-RPMs will be in the Choria yum repository for el6 and 7 64bit systems:
+RPMs are hosted in the Choria yum repository for el6 and 7 64bit systems:
 
 ```ini
 [choria]
@@ -206,3 +208,5 @@ protect=1
 ```
 
 On a RHEL7 system the systemd unit files are using templating, if you have a configuration section for `cmdb` you would run that using `systemctl start stream-replicator@cmdb`.
+
+On a RHEL6 system you can edit `/etc/sysconfig/stream-replicator` and set `TOPICS="cmdb monitor"` to start a instance for the configured topics matching the names.

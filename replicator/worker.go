@@ -162,9 +162,16 @@ func (w *worker) connectSTAN(ctx context.Context, cid string, name string, urls 
 
 			s := backoff.FiveSec.Duration(try)
 			w.log.Infof("%s NATS Stream client sleeping %s after failed connection attempt %d", name, s, try)
-			time.Sleep(s)
 
-			continue
+			timer := time.NewTimer(s)
+
+			select {
+			case <-timer.C:
+				continue
+			case <-ctx.Done():
+				w.log.Errorf("%s initial connection cancelled due to shut down", name)
+				return nil
+			}
 		}
 
 		break
@@ -200,9 +207,16 @@ func (w *worker) connectNATS(ctx context.Context, name string, urls string) (nat
 
 			s := backoff.FiveSec.Duration(try)
 			w.log.Infof("%s NATS client sleeping %s after failed connection attempt %d", name, s, try)
-			time.Sleep(s)
 
-			continue
+			timer := time.NewTimer(s)
+
+			select {
+			case <-timer.C:
+				continue
+			case <-ctx.Done():
+				w.log.Errorf("%s initial connection cancelled due to shut down", name)
+				return nil
+			}
 		}
 
 		w.log.Infof("%s NATS client connected to %s", name, natsc.ConnectedUrl())
