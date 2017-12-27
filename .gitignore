@@ -1,3 +1,5 @@
 vendor
 stream-replicator
 sr.yaml
+*.rpm
+stream-replicator-*-Linux-amd64

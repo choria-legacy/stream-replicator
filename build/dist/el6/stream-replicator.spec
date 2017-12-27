@@ -28,12 +28,15 @@ Replicator for NATS Streaming Topics
 
 %install
 rm -rf %{buildroot}
-%{__install} -d -m0755  %{buildroot}/usr/lib/systemd/system
+%{__install} -d -m0755  %{buildroot}/etc/sysconfig
+%{__install} -d -m0755  %{buildroot}/etc/init.d
 %{__install} -d -m0755  %{buildroot}/etc/logrotate.d
 %{__install} -d -m0755  %{buildroot}%{bindir}
 %{__install} -d -m0755  %{buildroot}%{etcdir}
 %{__install} -d -m0755  %{buildroot}/var/log
-%{__install} -m0644 dist/stream-replicator@.service %{buildroot}/usr/lib/systemd/system/%{pkgname}@.service
+%{__install} -d -m0756  %{buildroot}/var/run/%{pkgname}
+%{__install} -m0644 dist/stream-replicator.init %{buildroot}/etc/init.d/%{pkgname}
+%{__install} -m0644 dist/stream-replicator.sysconfig %{buildroot}/etc/sysconfig/%{pkgname}
 %{__install} -m0644 dist/stream-replicator-logrotate %{buildroot}/etc/logrotate.d/%{pkgname}
 %if 0%{?manage_conf} > 0
 %{__install} -m0640 dist/sr.yaml %{buildroot}%{etcdir}/sr.yaml
@@ -45,19 +48,17 @@ touch %{buildroot}/var/log/%{pkgname}.log
 rm -rf %{buildroot}
 
 %post
-if [ $1 -eq 1 ] ; then
-  systemctl --no-reload preset %{pkgname} >/dev/null 2>&1 || :
-fi
+/sbin/chkconfig --add %{pkgname} || :
 
-/bin/systemctl --system daemon-reload >/dev/null 2>&1 || :
-
-if [ $1 -ge 1 ]; then
-  /bin/systemctl try-restart %{pkgname} >/dev/null 2>&1 || :;
+%postun
+if [ "$1" -ge 1 ]; then
+  /sbin/service %{pkgname} condrestart &>/dev/null || :
 fi
 
 %preun
-if [ $1 -eq 0 ] ; then
-  systemctl --no-reload disable --now %{pkgname} >/dev/null 2>&1 || :
+if [ "$1" = 0 ] ; then
+  /sbin/service %{pkgname} stop > /dev/null 2>&1
+  /sbin/chkconfig --del %{pkgname} || :
 fi
 
 %files
@@ -66,7 +67,9 @@ fi
 %endif
 %{bindir}/%{pkgname}
 /etc/logrotate.d/%{pkgname}
-/usr/lib/systemd/system/%{pkgname}@.service
+%attr(755, root, root)/etc/init.d/%{pkgname}
+%attr(644, root, root)/etc/sysconfig/%{pkgname}
+%attr(755, nobody, nobody)/var/run/%{pkgname}
 %attr(640, nobody, nobody)/var/log/%{pkgname}.log
 
 %changelog
