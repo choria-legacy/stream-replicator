@@ -16,13 +16,14 @@ import (
 
 type Copier struct {
 	config config.TopicConf
-
-	Log *logrus.Entry
+	tls    bool
+	Log    *logrus.Entry
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup(topic config.TopicConf) error {
+func (c *Copier) Setup(topic config.TopicConf, tls bool) error {
 	c.config = topic
+	c.tls = tls
 
 	if c.config.Topic == "" {
 		return fmt.Errorf("A topic is required")
@@ -74,7 +75,7 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < c.config.Workers; i++ {
-		w := NewWorker(i, c.config, c.Log)
+		w := NewWorker(i, c.config, c.tls, c.Log)
 		wg.Add(1)
 		go w.Run(ctx, wg)
 	}

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/choria-io/stream-replicator/ssl"
+
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/limiter"
@@ -21,15 +23,17 @@ type worker struct {
 	from   stan.Conn
 	to     stan.Conn
 	config config.TopicConf
+	tls    bool
 	log    *logrus.Entry
 	sub    stan.Subscription
 }
 
-func NewWorker(i int, config config.TopicConf, log *logrus.Entry) *worker {
+func NewWorker(i int, config config.TopicConf, tls bool, log *logrus.Entry) *worker {
 	w := worker{
 		name:   fmt.Sprintf("%s_%d", config.Name, i),
 		log:    log.WithFields(logrus.Fields{"worker": i}),
 		config: config,
+		tls:    tls,
 	}
 
 	return &w
@@ -188,6 +192,16 @@ func (w *worker) connectNATS(ctx context.Context, name string, urls string) (nat
 		nats.ReconnectHandler(w.reconCb),
 		nats.ClosedHandler(w.closedCb),
 		nats.ErrorHandler(w.errorCb),
+	}
+
+	if w.tls {
+		c, err := ssl.TLSConfig()
+		if err != nil {
+			w.log.Errorf("Failed to configure TLS: %s", err)
+			return nil
+		}
+
+		options = append(options, nats.Secure(c))
 	}
 
 	var err error
