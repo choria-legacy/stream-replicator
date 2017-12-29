@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/choria-io/stream-replicator/ssl"
 	"github.com/ghodss/yaml"
 )
 
@@ -13,7 +14,8 @@ type replications struct {
 	Topics  map[string]TopicConf `json:"topics"`
 	Debug   bool
 	Verbose bool
-	Logfile string `json:"logfile"`
+	Logfile string   `json:"logfile"`
+	TLS     *TLSConf `json:"tls"`
 }
 
 // TopicConf is the configuration for a specific topic
@@ -30,6 +32,14 @@ type TopicConf struct {
 	MinAge      string `json:"age"`
 	Name        string
 	MonitorPort int `json:"monitor"`
+}
+
+type TLSConf struct {
+	SSLDir string `json:"ssl_dir"`
+	Scheme string `json:"scheme"`
+	CA     string `json:"ca"`
+	Cert   string `json:"cert"`
+	Key    string `json:"key"`
 }
 
 var config = replications{
@@ -57,7 +67,16 @@ func Load(file string) error {
 		return fmt.Errorf("Could not parse config file %s as YAML: %s", file, err.Error())
 	}
 
+	if config.TLS != nil {
+		ssl.Configure(config.TLS.Scheme, config.TLS.Options()...)
+	}
+
 	return nil
+}
+
+// TLS determines if TLS is configured
+func TLS() bool {
+	return config.TLS != nil
 }
 
 // Debug enables debug logging
@@ -83,4 +102,25 @@ func Topic(name string) (TopicConf, error) {
 	}
 
 	return t, nil
+}
+
+// Options return options that configure the ssl personalities
+func (t *TLSConf) Options() (opts []ssl.Option) {
+	if t.SSLDir != "" {
+		opts = append(opts, ssl.Directory(t.SSLDir))
+	}
+
+	if t.CA != "" {
+		opts = append(opts, ssl.CA(t.CA))
+	}
+
+	if t.Cert != "" {
+		opts = append(opts, ssl.Cert(t.Cert))
+	}
+
+	if t.Key != "" {
+		opts = append(opts, ssl.Key(t.Key))
+	}
+
+	return opts
 }
