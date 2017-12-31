@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/choria-io/stream-replicator
+
+    steps:
+      - checkout
+
+      - run: go get github.com/Masterminds/glide
+      - run: go get github.com/onsi/ginkgo/ginkgo
+      - run: glide install
+      - run: go build .
+      - run: ginkgo -p -skipMeasurements -v $(glide novendor)
