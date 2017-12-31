@@ -45,7 +45,7 @@ topics:
         queued: true             # optional
         queue_group: cmdb        # optional
         inspect: host            # optional
-        min_age: 1h              # optional
+        age: 1h                  # optional
         monitor: 10000           # optional
         name: cmdb_replicator    # optional
 ```
@@ -141,7 +141,7 @@ topics:
         target_url: nats://target1:4222,nats://target2:4222
         target_cluster_id: dc2
         inspect: sender
-        min_age: 1h
+        age: 1h
 ```
 
 This is specifically designed to work with the Choria NATS Stream Adapter.
@@ -192,6 +192,10 @@ In all cases the `name` label is the configured name or generated one as describ
 |`stream_replicator_limiter_memory_skipped`|Number of times the memory limiter determined a message should be skipped|
 |`stream_replicator_limiter_memory_passed`|Number of times the memory limiter allowed a message to be processed|
 |`stream_replicator_limiter_memory_errors`|Number of times the processor function returned an error|
+
+A sample Grafana dashboard can be found in [dashboard.json](dashboard.json), it will make a graph along these lines:
+
+![](stream-replicator.png)
 
 ## Packages
 

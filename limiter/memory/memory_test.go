@@ -22,7 +22,7 @@ var _ = Describe("Limiter/Memory", func() {
 
 	var _ = Describe("Configure", func() {
 		It("Should configure the key and age", func() {
-			m.Configure("k", time.Duration(1*time.Minute))
+			m.Configure("k", time.Duration(1*time.Minute), "test")
 			Expect(m.key).To(Equal("k"))
 			Expect(m.age).To(Equal(time.Duration(1 * time.Minute)))
 			Expect(m.seen).To(BeEmpty())
@@ -31,7 +31,7 @@ var _ = Describe("Limiter/Memory", func() {
 
 	var _ = Describe("shouldProcess", func() {
 		BeforeEach(func() {
-			m.Configure("k", time.Duration(1*time.Minute))
+			m.Configure("k", time.Duration(1*time.Minute), "test")
 		})
 
 		It("Should be true for empty values", func() {
@@ -58,7 +58,7 @@ var _ = Describe("Limiter/Memory", func() {
 
 	var _ = Describe("scrubber", func() {
 		It("Should delete only old entries", func() {
-			m.Configure("k", time.Duration(1*time.Minute))
+			m.Configure("k", time.Duration(1*time.Minute), "test")
 
 			m.seen["new"] = time.Now()
 			m.seen["old"] = time.Now().Add((-61 * time.Second) - (10 * time.Minute))

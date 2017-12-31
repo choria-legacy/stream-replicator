@@ -7,11 +7,13 @@ import (
 	stan "github.com/nats-io/go-nats-streaming"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tidwall/gjson"
+	"github.com/sirupsen/logrus"
 )
 
 type Limiter struct {
 	key  string
 	age  time.Duration
+	topic string
 	seen map[string]time.Time
 	mu   *sync.Mutex
 }
@@ -19,22 +21,22 @@ type Limiter struct {
 var seenGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "stream_replicator_limiter_memory_seen",
 	Help: "How many unique values were seen in the inspect key",
-}, []string{"key"})
+}, []string{"key", "name"})
 
 var skippedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "stream_replicator_limiter_memory_skipped",
 	Help: "How many times the limiter skipped a message that would have been published",
-}, []string{"key"})
+}, []string{"key", "name"})
 
 var passedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "stream_replicator_limiter_memory_passed",
 	Help: "How many times the limiter passed a message for processing",
-}, []string{"key"})
+}, []string{"key", "name"})
 
 var errCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 	Name: "stream_replicator_limiter_memory_errors",
 	Help: "How many errors were encountered during processing messages",
-}, []string{"key"})
+}, []string{"key", "name"})
 
 func init() {
 	prometheus.MustRegister(seenGauge)
@@ -43,13 +45,14 @@ func init() {
 	prometheus.MustRegister(errCtr)
 }
 
-func (m *Limiter) Configure(key string, age time.Duration) error {
+func (m *Limiter) Configure(key string, age time.Duration, topic string) error {
 	m.mu = &sync.Mutex{}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	m.key = key
 	m.age = age
+	m.topic = topic
 
 	m.seen = make(map[string]time.Time)
 
@@ -61,7 +64,7 @@ func (m *Limiter) Configure(key string, age time.Duration) error {
 
 func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process bool) error) error {
 	if m.key == "" {
-		passedCtr.WithLabelValues(m.key).Inc()
+		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return f(msg, true)
 	}
 
@@ -69,7 +72,7 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 
 	err := f(msg, m.shouldProcess(value))
 	if err != nil {
-		errCtr.WithLabelValues(m.key).Inc()
+		errCtr.WithLabelValues(m.key, m.topic).Inc()
 		return err
 	}
 
@@ -83,7 +86,7 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 
 func (m *Limiter) shouldProcess(value string) bool {
 	if value == "" {
-		passedCtr.WithLabelValues(m.key).Inc()
+		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return true
 	}
 
@@ -92,16 +95,19 @@ func (m *Limiter) shouldProcess(value string) bool {
 
 	t, found := m.seen[value]
 	if !found {
-		passedCtr.WithLabelValues(m.key).Inc()
+		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return true
 	}
 
 	if t.Before(time.Now().Add(-1 * m.age)) {
-		passedCtr.WithLabelValues(m.key).Inc()
+		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return true
 	}
 
-	skippedCtr.WithLabelValues(m.key).Inc()
+	skippedCtr.WithLabelValues(m.key, m.topic).Inc()
+
+	logrus.Debugf("Skipping message due to %s=%s last seen %s", m.key, value, t)
+
 	return false
 }
 
@@ -110,7 +116,7 @@ func (m *Limiter) promUpdater() {
 
 	for range ticker.C {
 		m.mu.Lock()
-		seenGauge.WithLabelValues(m.key).Set(float64(len(m.seen)))
+		seenGauge.WithLabelValues(m.key, m.topic).Set(float64(len(m.seen)))
 		m.mu.Unlock()
 	}
 }
