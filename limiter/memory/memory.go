@@ -69,24 +69,31 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 	}
 
 	value := gjson.GetBytes(msg.Data, m.key).String()
+	process := m.shouldProcess(value)
 
-	err := f(msg, m.shouldProcess(value))
+	if process {
+		passedCtr.WithLabelValues(m.key, m.topic).Inc()
+	} else {
+		skippedCtr.WithLabelValues(m.key, m.topic).Inc()
+	}
+
+	err := f(msg, process)
 	if err != nil {
 		errCtr.WithLabelValues(m.key, m.topic).Inc()
 		return err
 	}
 
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.seen[value] = time.Now()
+	if process {
+		m.mu.Lock()
+		m.seen[value] = time.Now()
+		m.mu.Unlock()
+	}
 
 	return nil
 }
 
 func (m *Limiter) shouldProcess(value string) bool {
 	if value == "" {
-		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return true
 	}
 
@@ -95,18 +102,16 @@ func (m *Limiter) shouldProcess(value string) bool {
 
 	t, found := m.seen[value]
 	if !found {
-		passedCtr.WithLabelValues(m.key, m.topic).Inc()
 		return true
 	}
 
-	if t.Before(time.Now().Add(-1 * m.age)) {
-		passedCtr.WithLabelValues(m.key, m.topic).Inc()
+	oldest := time.Now().Add(-1 * m.age)
+
+	if t.Before(oldest) {
 		return true
 	}
 
-	skippedCtr.WithLabelValues(m.key, m.topic).Inc()
-
-	logrus.Debugf("Skipping message due to %s=%s last seen %s", m.key, value, t)
+	logrus.Debugf("Skipping message due to %s=%s last seen %s > %s", m.key, value, t, oldest)
 
 	return false
 }
