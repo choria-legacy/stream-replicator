@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Copier is a single instance of a topic replicator
 type Copier struct {
 	config config.TopicConf
 	tls    bool
@@ -71,16 +72,18 @@ func (c *Copier) Setup(topic config.TopicConf, tls bool) error {
 	return nil
 }
 
+// Run starts all the worker in a replicator
 func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for i := 0; i < c.config.Workers; i++ {
-		w := NewWorker(i, c.config, c.tls, c.Log)
+		w := newWorker(i, c.config, c.tls, c.Log)
 		wg.Add(1)
 		go w.Run(ctx, wg)
 	}
 }
 
+// SetupPrometheus starts a prometheus exporter
 func (c *Copier) SetupPrometheus(port int) {
 	c.Log.Infof("Listening for /metrics on %d", port)
 	http.Handle("/metrics", promhttp.Handler())

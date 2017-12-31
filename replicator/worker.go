@@ -28,7 +28,7 @@ type worker struct {
 	sub    stan.Subscription
 }
 
-func NewWorker(i int, config config.TopicConf, tls bool, log *logrus.Entry) *worker {
+func newWorker(i int, config config.TopicConf, tls bool, log *logrus.Entry) *worker {
 	w := worker{
 		name:   fmt.Sprintf("%s_%d", config.Name, i),
 		log:    log.WithFields(logrus.Fields{"worker": i}),
@@ -69,6 +69,7 @@ func (w *worker) copyf(msg *stan.Msg) {
 	defer obs.ObserveDuration()
 
 	receivedCtr.WithLabelValues(w.name, w.config.Name).Inc()
+	receivedBytesCtr.WithLabelValues(w.name, w.config.Name).Add(float64(len(msg.Data)))
 
 	limiter.Process(msg, func(msg *stan.Msg, process bool) error {
 		if process {
@@ -84,6 +85,7 @@ func (w *worker) copyf(msg *stan.Msg) {
 
 			w.log.Debugf("Copied %d bytes in sequence %d from %s -> %s", len(msg.Data), msg.Sequence, w.config.SourceURL, w.config.TargetURL)
 
+			copiedBytesCtr.WithLabelValues(w.name, w.config.Name).Add(float64(len(msg.Data)))
 			copiedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 		}
 

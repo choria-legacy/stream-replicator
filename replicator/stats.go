@@ -10,9 +10,19 @@ var (
 		Help: "How many messages were received",
 	}, []string{"name", "worker"})
 
+	receivedBytesCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "stream_replicator_received_bytes",
+		Help: "Size of messages that were received",
+	}, []string{"name", "worker"})
+
 	copiedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "stream_replicator_copied_msgs",
 		Help: "How many messages were copied",
+	}, []string{"name", "worker"})
+
+	copiedBytesCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "stream_replicator_copied_bytes",
+		Help: "Size of messages that were copied",
 	}, []string{"name", "worker"})
 
 	failedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -53,7 +63,9 @@ var (
 
 func init() {
 	prometheus.MustRegister(receivedCtr)
+	prometheus.MustRegister(receivedBytesCtr)
 	prometheus.MustRegister(copiedCtr)
+	prometheus.MustRegister(copiedBytesCtr)
 	prometheus.MustRegister(failedCtr)
 	prometheus.MustRegister(ackFailedCtr)
 	prometheus.MustRegister(processTime)
