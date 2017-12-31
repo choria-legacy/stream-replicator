@@ -82,6 +82,7 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (c *Copier) SetupPrometheus(port int) {
+	c.Log.Infof("Listening for /metrics on %d", port)
 	http.Handle("/metrics", promhttp.Handler())
 	c.Log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

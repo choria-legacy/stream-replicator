@@ -82,6 +82,8 @@ func (w *worker) copyf(msg *stan.Msg) {
 				return err
 			}
 
+			w.log.Debugf("Copied %d bytes in sequence %d from %s -> %s", len(msg.Data), msg.Sequence, w.config.SourceURL, w.config.TargetURL)
+
 			copiedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 		}
 
@@ -91,7 +93,7 @@ func (w *worker) copyf(msg *stan.Msg) {
 		if err != nil {
 			ackFailedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 			w.log.Errorf("Could not ack message %d: %s", msg.Sequence, err.Error())
-		}
+		} 
 
 		return err
 	})
@@ -102,6 +104,7 @@ func (w *worker) subscribe() error {
 		stan.DurableName(w.config.Name),
 		stan.DeliverAllAvailable(),
 		stan.SetManualAckMode(),
+		stan.MaxInflight(10),
 	}
 
 	var err error
