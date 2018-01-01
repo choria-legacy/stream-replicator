@@ -9,6 +9,7 @@ jobs:
     steps:
       - checkout
 
+      - run: set
       - run: go get github.com/Masterminds/glide
       - run: go get github.com/onsi/ginkgo/ginkgo
       - run: glide install
