@@ -160,6 +160,12 @@ func (m *Limiter) readCache() error {
 		return err
 	}
 
+	m.mu.Unlock()
+	m.scrub()
+	m.mu.Lock()
+
+	m.log.Infof("Read %d bytes of last-seen data from cache file %s.  After scrubbing old entries the last-seen data has %d entries.", len(d), m.statefile, len(m.seen))
+
 	return nil
 }
 
@@ -171,7 +177,7 @@ func (m *Limiter) writeCache() error {
 		return nil
 	}
 
-	tmpfile, err := ioutil.TempFile("", "example")
+	tmpfile, err := ioutil.TempFile(config.StateDirectory(), "example")
 	if err != nil {
 		return err
 	}
@@ -195,6 +201,8 @@ func (m *Limiter) writeCache() error {
 	if err != nil {
 		return err
 	}
+
+	m.log.Debugf("Wrote %d bytes to last seen cache %s", len(content), m.statefile)
 
 	return nil
 }
