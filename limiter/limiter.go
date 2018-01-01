@@ -1,6 +1,7 @@
 package limiter
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -15,17 +16,17 @@ var age time.Duration
 var topic string
 
 type Inspecter interface {
-	Configure(key string, age time.Duration, topic string) error
+	Configure(ctx context.Context, key string, age time.Duration, topic string) error
 	ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process bool) error) error
 }
 
-func Configure(c config.TopicConf, ins Inspecter) error {
+func Configure(ctx context.Context, c config.TopicConf, ins Inspecter) error {
 	d, err := time.ParseDuration(c.MinAge)
 	if err != nil {
 		return fmt.Errorf("Could not parse duration '%s': %s", c.MinAge, err.Error())
 	}
 
-	err = ins.Configure(c.Inspect, d, c.Name)
+	err = ins.Configure(ctx, c.Inspect, d, c.Name)
 	if err != nil {
 		return fmt.Errorf("Could not configure inspecter: %s", err.Error())
 	}

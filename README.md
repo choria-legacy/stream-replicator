@@ -7,9 +7,9 @@ This is a tool that consumes 1 topic in a NATS Streaming server and replicates i
   * Order preserving single worker topic replication
   * Vertically and Horizontally scalable worker pools for unordered replication
   * Filtering out high frequency updates of similar data to reduce traffic in a multi site feeding a single global store scenario.
-  * Metrics about the performance and througput are optionally exposed in Prometheus format
+  * Metrics about the performance and throughput are optionally exposed in Prometheus format
 
-When there is only 1 worker in a unqueued setup this will create a Durable subscription in the origin NATS Stream with either a generated name or one you configure.
+When there is only 1 worker in a un-queued setup this will create a Durable subscription in the origin NATS Stream with either a generated name or one you configure.
 
 When there are many workers or it's specified to belong to a queue group a Durable Queue Group is created with either a generated name or ones you specify.
 
@@ -33,7 +33,7 @@ Configuration is done using a YAML file:
 debug: false                     # default
 verbose: false                   # default
 logfile: "/path/to/logfile"      # STDOUT default
-
+state_dir: "/path/to/statedir"   # optional
 topics:
     cmdb:
         topic: acme.cmdb
@@ -61,7 +61,7 @@ Due to how NATS Streaming work it's possible but with a few caveats:
   1. You can only have 1 worker subscribed to the topic
   1. You cannot have this worker belong to any queue group
 
-This means you'll be limited in throughput and it might not work well for very busy streams.  As far as I can tell this is unavoiadable, you have to code your apps to be resilient to out of order messages in distributed systems so presumably this is not a huge limiting facter, but if you have to it can be done with a topic config like this:
+This means you'll be limited in throughput and it might not work well for very busy streams.  As far as I can tell this is unavoidable, you have to code your apps to be resilient to out of order messages in distributed systems so presumably this is not a huge limiting factor, but if you have to it can be done with a topic config like this:
 
 ```yaml
 topics:
@@ -111,15 +111,15 @@ I intend to use this with Choria's NATS Stream adapter to build a registration d
                    | stream |
                    \--------/
                  /            \
-               /  once / hour  \
-             /                  \
-      /--------\              /--------\
-      | stream |              | stream |
-      \--------/              \--------/
+               /   once / hour  \
+             /                    \
+      /--------\                /--------\
+      | stream |                | stream |   ...... [ x 10s of sites ]
+      \--------/                \--------/
 
-  /////||||||||\\\\\      /////||||||||\\\\\
-    5 min interval          5 min interval
-      node data               node data
+  /////||||||||\\\\\        /////||||||||\\\\\
+    5 min interval            5 min interval
+      node data                  node data
 ```
 
 In the above scenario I get data from my nodes very frequently and the combined stream would overwhelm my main layer data processors due to the amount of downstream sources.
@@ -128,11 +128,15 @@ I will thus have a high frequency processor - and so very fresh data - in every 
 
 The replicator can facilitate this by inspecting the JSON data in the messages for a specific uniquely identifying field - like a hostname - and only publishing data upward if it has not yet seen that machine in the past hour.
 
-This works well it means new registration data goes up immediately and a regular configurable heartbeat flows through the entire system.  With in-datacenter data being fresh where high throughput automations depend on fresh data.
+This works well it means new registration data goes up immediately and a regular configurable heartbeat flows through the entire system.  With in-datacenter data being fresh where high throughput automations depend on fresh data.  See the sample graph down by Metrics where one can see the effect of the local traffic vs replicated traffic with a 30 minute setting.
 
 At present the data store for the last-seen data is in memory only so this only works on a single node scenario (but supports many workers), in future perhaps we can support something like `etcd` or `redis` to store that data.
 
+It does however support storing the state every 30 seconds and on shutdown to a file per topic in `state_dir` and it will read these files on startup.  On a large site with 10s of thousands of unique senders this greatly reduce the restart cost, but on a small site it's probably not worth bothering with, unless you really care and things will break if you get more updates per `age` than configured.
+
 ```yaml
+state_dir: /var/cache/stream-replicator
+
 topics:
     cmdb:
         topic: acme.cmdb
@@ -143,8 +147,6 @@ topics:
         inspect: sender
         age: 1h
 ```
-
-This is specifically designed to work with the Choria NATS Stream Adapter.
 
 ## About client and queue group names
 
@@ -180,7 +182,9 @@ In all cases the `name` label is the configured name or generated one as describ
 |Stat|Comments|
 |----|--------|
 |`stream_replicator_received_msgs`|How many messages were received. The difference between this and `stream_replicator_copied_msgs` is how many limiters skipped|
+|`stream_replicator_received_bytes`|The size of messages that were received|
 |`stream_replicator_copied_msgs`|A Counter indicating how many messages were copied|
+|`stream_replicator_copied_bytes`|A Counter indicating the size of that messages were copied|
 |`stream_replicator_failed_msgs`|How many messages failed to copy|
 |`stream_replicator_acks_failed`|How many times did sending the ack fail|
 |`stream_replicator_processing_time`|How long it takes to do the processing per message including ack'ing it to the source|
@@ -188,7 +192,7 @@ In all cases the `name` label is the configured name or generated one as describ
 |`stream_replicator_connection_closed`|How many times did the NATS connection close|
 |`stream_replicator_connection_errors`|How many times did the NATS connection encounter errors|
 |`stream_replicator_current_sequence`|The current sequence per worker, this is kind of not useful in pooled workers since messages are tried in any order, but in a single worker scenario this can help you discover how far behind you are|
-|`stream_replicator_limiter_memory_seen`|When inspecting the messages this shows the current size of the known list in the memory limiter - the list is scrubbed every `min_age` + 10 minutes of within that time.|
+|`stream_replicator_limiter_memory_seen`|When inspecting the messages this shows the current size of the known list in the memory limiter - the list is scrubbed every `age` + 10 minutes of within that time.|
 |`stream_replicator_limiter_memory_skipped`|Number of times the memory limiter determined a message should be skipped|
 |`stream_replicator_limiter_memory_passed`|Number of times the memory limiter allowed a message to be processed|
 |`stream_replicator_limiter_memory_errors`|Number of times the processor function returned an error|

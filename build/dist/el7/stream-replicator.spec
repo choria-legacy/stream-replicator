@@ -33,6 +33,7 @@ rm -rf %{buildroot}
 %{__install} -d -m0755  %{buildroot}%{bindir}
 %{__install} -d -m0755  %{buildroot}%{etcdir}
 %{__install} -d -m0755  %{buildroot}/var/log
+%{__install} -d -m0756  %{buildroot}/var/lib/%{pkgname}
 %{__install} -m0644 dist/stream-replicator@.service %{buildroot}/usr/lib/systemd/system/%{pkgname}@.service
 %{__install} -m0644 dist/stream-replicator-logrotate %{buildroot}/etc/logrotate.d/%{pkgname}
 %if 0%{?manage_conf} > 0
@@ -68,6 +69,7 @@ fi
 /etc/logrotate.d/%{pkgname}
 /usr/lib/systemd/system/%{pkgname}@.service
 %attr(640, nobody, nobody)/var/log/%{pkgname}.log
+%attr(640, nobody, nobody)/var/lib/%{pkgname}
 
 %changelog
 * Tue Dec 26 2017 R.I.Pienaar <rip@devco.net>

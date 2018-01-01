@@ -1,21 +1,37 @@
 package memory
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/choria-io/stream-replicator/config"
 	stan "github.com/nats-io/go-nats-streaming"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tidwall/gjson"
 	"github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
+// Limiter is a in-process memory based state tracker that inspects
+// data being processed, tracks a certain key and ensure a processor
+// function is only run once per age per unique tracked key
+//
+// It can save the cache to disk regularly if configured and load
+// it during startup which helps on very large sender counts to
+// drastically reduce the restart costs of this kind of cache
 type Limiter struct {
-	key  string
-	age  time.Duration
-	topic string
-	seen map[string]time.Time
-	mu   *sync.Mutex
+	key       string
+	age       time.Duration
+	topic     string
+	statefile string
+	seen      map[string]time.Time
+	mu        *sync.Mutex
+	log       *logrus.Entry
 }
 
 var seenGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -45,19 +61,24 @@ func init() {
 	prometheus.MustRegister(errCtr)
 }
 
-func (m *Limiter) Configure(key string, age time.Duration, topic string) error {
+func (m *Limiter) Configure(ctx context.Context, key string, age time.Duration, topic string) error {
 	m.mu = &sync.Mutex{}
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	m.key = key
 	m.age = age
 	m.topic = topic
+	m.log = logrus.WithFields(logrus.Fields{"key": key, "age": age, "topic": topic})
+
+	if config.StateDirectory() != "" {
+		m.statefile = filepath.Join(config.StateDirectory(), fmt.Sprintf("%s.json", topic))
+	}
 
 	m.seen = make(map[string]time.Time)
 
-	go m.scrub()
-	go m.promUpdater()
+	m.readCache()
+
+	go m.cacher(ctx)
+	go m.scrubber(ctx)
+	go m.promUpdater(ctx)
 
 	return nil
 }
@@ -111,22 +132,119 @@ func (m *Limiter) shouldProcess(value string) bool {
 		return true
 	}
 
-	logrus.Debugf("Skipping message due to %s=%s last seen %s > %s", m.key, value, t, oldest)
+	m.log.Debugf("Skipping message due to %s=%s last seen %s > %s", m.key, value, t, oldest)
 
 	return false
 }
 
-func (m *Limiter) promUpdater() {
-	ticker := time.NewTicker(10 * time.Second)
+func (m *Limiter) readCache() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	for range ticker.C {
-		m.mu.Lock()
-		seenGauge.WithLabelValues(m.key, m.topic).Set(float64(len(m.seen)))
-		m.mu.Unlock()
+	if m.statefile == "" {
+		m.log.Warn("No state_dir configured, last seen cache is not saved")
+		return nil
+	}
+
+	if len(m.seen) > 0 {
+		return fmt.Errorf("last seen cache is not empty")
+	}
+
+	d, err := ioutil.ReadFile(m.statefile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(d, &m.seen)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Limiter) writeCache() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if len(m.seen) == 0 {
+		return nil
+	}
+
+	tmpfile, err := ioutil.TempFile("", "example")
+	if err != nil {
+		return err
+	}
+
+	content, err := json.Marshal(m.seen)
+	if err != nil {
+		return err
+	}
+
+	_, err = tmpfile.Write(content)
+	if err != nil {
+		return err
+	}
+
+	err = tmpfile.Close()
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(tmpfile.Name(), m.statefile)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Limiter) cacher(ctx context.Context) {
+	if m.statefile == "" {
+		m.log.Warn("Last seen timestamps cannot be saved, state_dir is not set")
+		return
+	}
+
+	ticker := time.NewTicker(30 * time.Second)
+
+	writer := func() {
+		err := m.writeCache()
+		if err != nil {
+			m.log.Errorf("Could not write last seen data to cache: %s", err)
+		}
+	}
+
+	for {
+		select {
+		case <-ticker.C:
+			writer()
+
+		case <-ctx.Done():
+			m.log.Infof("Saving last seen state on exit")
+			writer()
+
+			return
+		}
 	}
 }
 
-func (m *Limiter) scrubber() {
+func (m *Limiter) promUpdater(ctx context.Context) {
+	ticker := time.NewTicker(10 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			m.mu.Lock()
+			seenGauge.WithLabelValues(m.key, m.topic).Set(float64(len(m.seen)))
+			m.mu.Unlock()
+
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (m *Limiter) scrub() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -139,10 +257,15 @@ func (m *Limiter) scrubber() {
 	}
 }
 
-func (m *Limiter) scrub() {
+func (m *Limiter) scrubber(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Minute)
 
-	for range ticker.C {
-		m.scrubber()
+	for {
+		select {
+		case <-ticker.C:
+			m.scrub()
+		case <-ctx.Done():
+			return
+		}
 	}
 }
