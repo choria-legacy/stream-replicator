@@ -1,6 +1,6 @@
 vendor
 .DS_Store
 stream-replicator
-sr.yaml
 *.rpm
-stream-replicator-*-Linux-amd64
+stream-replicator-*Linux-amd64
+limiter/memory/testdata/test.json

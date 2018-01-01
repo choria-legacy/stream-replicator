@@ -1,0 +1,19 @@
+---
+# refer to https://github.com/choria-io/stream-replicator for
+# full details about the structure and contents of the config file
+
+debug: false
+verbose: false
+logfile: /var/log/{{pkgname}}.log
+state_dir: /var/lib/{{pkgname}}
+
+topics:
+  test:
+    topic: test.topic
+    source_url: nats://nats1:4222
+    source_cluster_id: c1
+    target_url: nats://nats2:4222
+    target_cluster_id: c2
+    monitor: 10000
+    inspect: sender
+    age: 1h

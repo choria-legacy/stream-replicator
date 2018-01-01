@@ -19,12 +19,14 @@ type Copier struct {
 	config config.TopicConf
 	tls    bool
 	Log    *logrus.Entry
+	ctx    context.Context
+	cancel func()
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup(topic config.TopicConf, tls bool) error {
+func (c *Copier) Setup(topic config.TopicConf) error {
 	c.config = topic
-	c.tls = tls
+	c.tls = config.TLS()
 
 	if c.config.Topic == "" {
 		return fmt.Errorf("A topic is required")
@@ -64,9 +66,11 @@ func (c *Copier) Setup(topic config.TopicConf, tls bool) error {
 
 	c.Log = logrus.WithFields(logrus.Fields{"topic": c.config.Topic, "workers": c.config.Workers, "name": c.config.Name, "queue": c.config.QueueGroup})
 
+	c.ctx, c.cancel = context.WithCancel(context.Background())
+
 	if c.config.Inspect != "" && c.config.MinAge != "" {
 		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
-		limiter.Configure(c.config, &memory.Limiter{})
+		limiter.Configure(c.ctx, c.config, &memory.Limiter{})
 	}
 
 	return nil
@@ -80,6 +84,11 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 		w := newWorker(i, c.config, c.tls, c.Log)
 		wg.Add(1)
 		go w.Run(ctx, wg)
+	}
+
+	select {
+	case <-ctx.Done():
+		c.cancel()
 	}
 }
 

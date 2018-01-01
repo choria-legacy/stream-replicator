@@ -11,11 +11,12 @@ import (
 )
 
 type replications struct {
-	Topics  map[string]TopicConf `json:"topics"`
-	Debug   bool
-	Verbose bool
-	Logfile string   `json:"logfile"`
-	TLS     *TLSConf `json:"tls"`
+	Topics   map[string]TopicConf `json:"topics"`
+	Debug    bool
+	Verbose  bool
+	Logfile  string   `json:"logfile"`
+	TLS      *TLSConf `json:"tls"`
+	StateDir string   `json:"state_dir"`
 }
 
 // TopicConf is the configuration for a specific topic
@@ -34,6 +35,7 @@ type TopicConf struct {
 	MonitorPort int `json:"monitor"`
 }
 
+// TLSConf describes the TLS config for a NATS connection
 type TLSConf struct {
 	SSLDir string `json:"ssl_dir"`
 	Scheme string `json:"scheme"`
@@ -72,6 +74,11 @@ func Load(file string) error {
 	}
 
 	return nil
+}
+
+// StateDirectory is where a cache of seen data will be saved when configured
+func StateDirectory() string {
+	return config.StateDir
 }
 
 // TLS determines if TLS is configured

@@ -13,4 +13,4 @@ jobs:
       - run: go get github.com/onsi/ginkgo/ginkgo
       - run: glide install
       - run: go build .
-      - run: ginkgo -p -skipMeasurements -v $(glide novendor)
+      - run: ginkgo -p -skipMeasurements $(glide novendor)
