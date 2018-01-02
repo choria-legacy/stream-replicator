@@ -19,6 +19,8 @@ First time it connects it attempts to replicate all messages, as the subscriptio
 
 This is a pretty new project and not yet used in production, use with caution and I'd love any feedback you might have - especially design ideas about multi worker order preserving replication!
 
+Feature wise the only real remaining thing on my initial wishlist is to make the current undocumented SSL configuration be topic specific, but with the ability to have a global configuration.  Apart from that this does what I need.  I've tested it at some scale and it performs really well but not yet running it for more than a few days.
+
 Initial packages for el6 and el7 64bit systems are now on the Choria YUM repository, see below.
 
 ## Configuration
