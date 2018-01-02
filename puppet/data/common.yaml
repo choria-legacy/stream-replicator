@@ -1,0 +1,7 @@
+lookup_options:
+  stream_replicator::managed_topics:
+    merge: "unique"
+
+  stream_replicator::topics:
+    merge:
+      strategy: "deep"

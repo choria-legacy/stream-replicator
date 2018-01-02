@@ -44,14 +44,16 @@ func Run() {
 
 	err := config.Load(cfile)
 	if err != nil {
-		kingpin.Fatalf("Could not parse configuration: %s", err.Error())
+		logrus.Fatalf("Could not parse configuration: %s", err.Error())
+		os.Exit(1)
 	}
 
 	configureLogging()
 
 	topicconf, err := config.Topic(topic)
 	if err != nil {
-		kingpin.Fatalf("Could not find a configuration for topic %s in the config file %s", topic, cfile)
+		logrus.Fatalf("Could not find a configuration for topic %s in the config file %s", topic, cfile)
+		os.Exit(1)
 	}
 
 	go interruptHandler()
@@ -69,7 +71,8 @@ func writePID(pidfile string) {
 
 	err := ioutil.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
 	if err != nil {
-		kingpin.Fatalf("Could not write PID: %s", err.Error())
+		logrus.Fatalf("Could not write PID: %s", err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -109,7 +112,8 @@ func configureLogging() {
 
 		file, err := os.OpenFile(config.LogFile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
-			kingpin.Fatalf("Cannot open log file %s: %s", config.LogFile(), err.Error())
+			logrus.Fatalf("Cannot open log file %s: %s", config.LogFile(), err.Error())
+			os.Exit(1)
 		}
 
 		logrus.SetOutput(file)
