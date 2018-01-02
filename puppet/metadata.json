@@ -1,0 +1,41 @@
+{
+    "name": "choria-stream_replicator",
+    "version": "0.0.1",
+    "author": "R.I.Pienaar <rip@devco.net>",
+    "summary": "Install and configure the Choria NATS Stream Replicator",
+    "license": "Apache-2.0",
+    "source": "https://github.com/choria-io/stream-replicator",
+    "issues_url": "https://github.com/choria-io/stream-replicator/issues",
+    "dependencies": [
+        { "name": "puppetlabs/stdlib", "version_requirement": ">= 4.12.0 < 5.0.0" }
+    ],
+    "operatingsystem_support": [
+      {
+        "operatingsystem": "CentOS",
+        "operatingsystemrelease": [
+          "6",
+          "7"
+        ]
+      },
+      {
+        "operatingsystem": "OracleLinux",
+        "operatingsystemrelease": [
+          "6",
+          "7"
+        ]
+      },
+      {
+        "operatingsystem": "RedHat",
+        "operatingsystemrelease": [
+          "6",            
+          "7"
+        ]
+      }
+    ],
+    "requirements": [
+      {
+        "name": "puppet",
+        "version_requirement": ">= 4.7.0 < 6.0.0"
+      }
+    ]
+  }
