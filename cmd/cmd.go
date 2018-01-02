@@ -20,6 +20,7 @@ var (
 	cancel  func()
 	ctx     context.Context
 	version string
+	sha     string
 )
 
 func Run() {

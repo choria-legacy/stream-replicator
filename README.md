@@ -2,7 +2,7 @@
 
 This is a tool that consumes 1 topic in a NATS Streaming server and replicates it to another NATS Streaming server.
 
-## Features:
+## Features
 
   * Order preserving single worker topic replication
   * Vertically and Horizontally scalable worker pools for unordered replication
@@ -106,7 +106,6 @@ See the notes below about client names and queue group names though if you wish 
 ## Inspecting and limiting replication of duplicated data
 
 I intend to use this with Choria's NATS Stream adapter to build a registration database.  My nodes will publish their metadata regularly but outside of the local network I don't really need it that regular.
-
 
 ```
                    /--------\
@@ -220,3 +219,7 @@ protect=1
 On a RHEL7 system the systemd unit files are using templating, if you have a configuration section for `cmdb` you would run that using `systemctl start stream-replicator@cmdb`.
 
 On a RHEL6 system you can edit `/etc/sysconfig/stream-replicator` and set `TOPICS="cmdb monitor"` to start a instance for the configured topics matching the names.
+
+## Puppet Module
+
+A Puppet module to install and manage the Stream Replicator can be found on the Puppet Forge as `choria/stream_replicator`

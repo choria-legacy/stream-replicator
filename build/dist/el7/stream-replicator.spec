@@ -6,6 +6,8 @@
 %define iteration {{iteration}}
 %define dist {{dist}}
 %define manage_conf {{manage_conf}}
+%define go_arch {{go_arch}}
+%define target_arch {{arch}}
 
 Name: %{pkgname}
 Version: %{version}
@@ -15,7 +17,7 @@ License: Apache-2.0
 URL: https://choria.io
 Group: System Tools
 Packager: R.I.Pienaar <rip@devco.net>
-Source0: %{pkgname}-%{version}-Linux-amd64.tgz
+Source0: %{pkgname}-%{version}.tgz
 BuildRoot: %{_tmppath}/%{pkgname}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -39,7 +41,7 @@ rm -rf %{buildroot}
 %if 0%{?manage_conf} > 0
 %{__install} -m0640 dist/sr.yaml %{buildroot}%{etcdir}/sr.yaml
 %endif
-%{__install} -m0755 stream-replicator-%{version}-Linux-amd64 %{buildroot}%{bindir}/%{pkgname}
+%{__install} -m0755 stream-replicator-%{version}-linux-%{go_arch} %{buildroot}%{bindir}/%{pkgname}
 touch %{buildroot}/var/log/%{pkgname}.log
 
 %clean
