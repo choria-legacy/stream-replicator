@@ -158,8 +158,6 @@ workflows:
           filters: &semver_only
             tags:
               only: /^\d+\.\d+\.\d+$/
-            branches:
-              ignore: /.*/
 
       - build_el6_32bit_rpms:
           requires:
