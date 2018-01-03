@@ -50,7 +50,7 @@ start() {
     for c in ${TOPICS}; do
         pidfile="${piddir}/${c}.pid"
         rm -f ${pidfile}
-        
+
         daemon --pidfile=${pidfile} " { nohup ${exec} --config ${conffile} --topic ${c} --pid ${pidfile} > ${logfile} 2>&1 & } ; sleep 0.5 ; [ -f ${pidfile} ]"
 
         if [ $? = 0 ] && [ -f ${pidfile} ]; then
@@ -77,8 +77,8 @@ start() {
 
 stop() {
     echo -n $"Shutting down ${prog}: "
-    for c in ${TOPICS}; do
-    	pidf="${piddir}/${c}.pid"
+    for pidf in `/bin/ls $piddir/*.pid 2>/dev/null`; do
+        topic=`basename %{pidf} .pid`
 
     	if [ -s ${pidf} ]; then
             pid=`cat ${pidf}`
@@ -91,14 +91,14 @@ stop() {
 
             status -p "${pidf}" ${exec} >/dev/null 2>&1
             if [ $? = 0 ];then
-                echo -n "Timeout reached. Killing ${c} (pid ${pid}) with SIGKILL. "
+                echo -n "Timeout reached. Killing ${topic} (pid ${pid}) with SIGKILL. "
                 kill -KILL $pid >/dev/null 2>&1
             fi
 
         	rm -f ${pidf}
     	fi
 
-    	echo -n "${c} "
+        echo -n "${topic} "
     done
 
     echo
