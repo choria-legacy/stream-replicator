@@ -120,10 +120,10 @@ rh_status() {
 
     RETVAL=3
 
-    for c in ${TOPICS}; do
-    	pidf="${piddir}/${c}.pid"
+    for pidf in `/bin/ls $piddir/*.pid 2>/dev/null`; do
+        topic=`basename ${pidf} .pid`
 
-        echo -n $"${c}: "
+        echo -n $"${topic}: "
 
         status -p "${pidf}" -l ${lockfile} ${exec}
         if [ $? = 0 ]; then

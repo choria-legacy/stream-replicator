@@ -414,7 +414,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "stream_replicator_limiter_memory_seen{name=~\"^$topic.*\"}",
+              "expr": "sum(stream_replicator_limiter_memory_seen{name=~\"^$topic.*\"})",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "Seen",
@@ -451,9 +451,9 @@
       {
         "allValue": ".+",
         "current": {
-          "tags": [],
-          "text": "cloudmeta_registration",
-          "value": "cloudmeta_registration"
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": "prometheus",
         "hide": 0,
