@@ -149,7 +149,10 @@ workflows:
   version: 2
   test_and_ship:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.+/
 
       - hold:
           type: approval
