@@ -72,7 +72,7 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get install rake
 
-      - run: rake build
+      - run: VERSION=${CIRCLE_TAG} rake build
       - run: VERSION=${CIRCLE_TAG} ./build/prepare.sh
 
       - run: docker run --volumes-from store --rm -e ARCH=${RPMARCH} -e VERSION=${CIRCLE_TAG} ripienaar/rpmbuilder:5
