@@ -38,6 +38,8 @@ jobs:
       - run: |
           cd puppet
           sed -i.bak -re "s/(.+\"version\": \").+/\1${CIRCLE_TAG}\",/" metadata.json
+          sed -i.bak -re "s/(.+version = \").+/\1${CIRCLE_TAG}\",/" manifests/init.pp
+
           puppet module build .
 
           mkdir -p /tmp/workspace/artifacts/puppet
