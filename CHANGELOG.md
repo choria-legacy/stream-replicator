@@ -1,5 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/01/04|      |Release 0.0.4                                                                                            |
+|2018/01/03|38    |Improve uniqueness of client names to make multi site deployments easier                                 |
+|2018/01/03|35    |Complete support for managing el6 systems with Puppet                                                    |
+|2018/01/03|34    |Use os.family so that the configuration applies to all EL like systems                                   |
+|2018/01/03|33    |When making a release set the Puppet module ensure value to match the version being released             |
 |2018/01/03|      |Release 0.0.3                                                                                            |
 |2018/01/03|27    |Stop all running services rather than configured ones on el6                                             |
 |2018/01/01|10    |Adds a Puppet module                                                                                     |
