@@ -14,6 +14,12 @@ then
   exit 1
 fi
 
+if [ -z $ARCH ]
+then
+  echo "ARCH has not been set, cannot build"
+  exit 1
+fi
+
 if [ ! -d /build ]
 then
   echo "/build is not mounted, cannot build"

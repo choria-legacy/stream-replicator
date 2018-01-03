@@ -21,6 +21,34 @@ jobs:
           paths:
             - stream-replicator.tgz
 
+  build_puppet_module:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/choria-io/stream-replicator
+
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+
+      - run: cd .. ; tar -xzf /tmp/workspace/stream-replicator.tgz
+
+      - run: sudo apt-get update
+      - run: sudo apt-get install rake puppet
+      - run: |
+          cd puppet
+          sed -i.bak -re "s/(.+\"version\": \").+/\1${CIRCLE_TAG}\",/" metadata.json
+          puppet module build .
+
+          mkdir -p /tmp/workspace/artifacts/puppet
+
+          cp pkg/*.tar.gz /tmp/workspace/artifacts/puppet/
+
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - artifacts
+
   build_el6_32bit_rpms:
     docker:
       - image: circleci/golang:1.9
@@ -28,7 +56,6 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - VERSION: development
       - DIST: el6
       - ARCH: "386"
       - RPMARCH: "i386"
@@ -48,7 +75,7 @@ jobs:
       - run: rake build
       - run: ./build/prepare.sh
 
-      - run: docker run --volumes-from store --rm -e ARCH=${RPMARCH} -e VERSION=${VERSION} ripienaar/rpmbuilder:5
+      - run: docker run --volumes-from store --rm -e ARCH=${RPMARCH} -e VERSION=${CIRCLE_TAG} ripienaar/rpmbuilder:5
       - run: |
           mkdir -p /tmp/workspace/artifacts/${DIST}/${ARCH}
 
@@ -60,7 +87,7 @@ jobs:
 
       - persist_to_workspace:
           root: /tmp/workspace
-          paths: 
+          paths:
             - artifacts
 
   build_el6_64bit_rpms:
@@ -70,12 +97,11 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - VERSION: development
       - DIST: el6
       - ARCH: amd64
       - RPMARCH: x864_64
 
-    steps: 
+    steps:
       *std_build_steps
 
   build_el7_32bit_rpms:
@@ -85,12 +111,11 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - VERSION: development
       - DIST: el7
       - ARCH: "386"
       - RPMARCH: i386
 
-    steps: 
+    steps:
       *std_build_steps
 
   build_el7_64bit_rpms:
@@ -100,19 +125,18 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - VERSION: development
       - DIST: el7
       - ARCH: amd64
       - RPMARCH: x864_64
 
-    steps: 
+    steps:
       *std_build_steps
-          
+
   gather_artifacts:
     docker:
       - image: circleci/golang:1.9
 
-    steps: 
+    steps:
       - attach_workspace:
           at: /tmp/workspace
 
@@ -135,7 +159,7 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+$/
             branches:
-                ignore: /.*/
+              ignore: /.*/
 
       - build_el6_32bit_rpms:
           requires:
@@ -161,6 +185,12 @@ workflows:
           filters:
             *semver_only
 
+      - build_puppet_module:
+          requires:
+           - hold
+          filters:
+            *semver_only
+
       - gather_artifacts:
           requires:
             - hold
@@ -168,5 +198,6 @@ workflows:
             - build_el6_64bit_rpms
             - build_el7_32bit_rpms
             - build_el7_64bit_rpms
+            - build_puppet_module
           filters:
             *semver_only
