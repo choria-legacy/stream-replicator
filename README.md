@@ -99,7 +99,7 @@ topics:
         workers: 10
 ```
 
-This will automatically create a Queue Group name based on the topic and so all workers will belong to the same group.  If you set up the same configuration on a 2nd node it too will join the same group and so load share the replication duty.
+This will automatically create a Queue Group name based on the hostname and topic and so all workers will belong to the same group.  If you set up the same configuration on a 2nd node it too will join the same group and so load share the replication duty.
 
 See the notes below about client names and queue group names though if you wish to scale this to multiple nodes.
 
@@ -139,7 +139,7 @@ It does however support storing the state every 30 seconds and on shutdown to a 
 state_dir: /var/cache/stream-replicator
 
 topics:
-    cmdb:
+    dc1_cmdb:
         topic: acme.cmdb
         source_url: nats://source1:4222,nats://source2:4222
         source_cluster_id: dc1
@@ -151,9 +151,9 @@ topics:
 
 ## About client and queue group names
 
-By default if you replicate topic `foo.bar` the client name for the replicator will be `foo_bar_stream_replicator_n` where `n` is the number of the worker.
+By default if you replicate topic `acme.cmdb` and the config name is `cmdb` the client name for the replicator will be `dc1_cmdb_acme_cmdb_stream_replicator_n` where `n` is the number of the worker.
 
-If a group is needed - like when workers is > 1 or `queued` is set the group will be called `foo_bar_stream_replicator_grp`.
+If a group is needed - like when workers is > 1 or `queued` is set the group will be called `acme_cmdb_stream_replicator_grp`.
 
 This works fine for almost all cases out of the box if you want to scale your workers across multiple machines you might need to set custom names, something like:
 
