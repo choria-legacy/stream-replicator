@@ -159,7 +159,7 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+$/
             branches:
-              only: /^master$/
+              ignore: /.*/
 
       - build_el6_32bit_rpms:
           requires:
