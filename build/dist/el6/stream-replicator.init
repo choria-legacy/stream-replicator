@@ -78,7 +78,7 @@ start() {
 stop() {
     echo -n $"Shutting down ${prog}: "
     for pidf in `/bin/ls $piddir/*.pid 2>/dev/null`; do
-        topic=`basename %{pidf} .pid`
+        topic=`basename ${pidf} .pid`
 
     	if [ -s ${pidf} ]; then
             pid=`cat ${pidf}`
