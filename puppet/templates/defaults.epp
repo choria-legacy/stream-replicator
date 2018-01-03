@@ -1,0 +1,1 @@
+TOPICS="<%= $stream_replicator::managed_topics.join(" ") %>"
