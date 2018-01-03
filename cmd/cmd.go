@@ -60,7 +60,7 @@ func Run() {
 	go interruptHandler()
 
 	writePID(pidfile)
-	startReplicator(ctx, wg, done, topicconf)
+	startReplicator(ctx, wg, done, topicconf, topic)
 
 	wg.Wait()
 }
@@ -92,8 +92,8 @@ func interruptHandler() {
 	}
 }
 
-func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic config.TopicConf) {
-	err := rep.Setup(topic)
+func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic config.TopicConf, topicname string) {
+	err := rep.Setup(topicname, topic)
 	if err != nil {
 		logrus.Errorf("Could not configure Replicator: %s", err.Error())
 		return

@@ -24,7 +24,7 @@ type Copier struct {
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup(topic config.TopicConf) error {
+func (c *Copier) Setup(name string, topic config.TopicConf) error {
 	c.config = topic
 	c.tls = config.TLS()
 
@@ -53,7 +53,7 @@ func (c *Copier) Setup(topic config.TopicConf) error {
 	}
 
 	if c.config.Name == "" {
-		c.config.Name = fmt.Sprintf("%s_stream_replicator", strings.Replace(c.config.Topic, ".", "_", -1))
+		c.config.Name = fmt.Sprintf("%s_%s_stream_replicator", name, strings.Replace(c.config.Topic, ".", "_", -1))
 	}
 
 	if c.config.Workers > 1 {
