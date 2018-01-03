@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/01/03|      |Release 0.0.3                                                                                            |
+|2018/01/03|27    |Stop all running services rather than configured ones on el6                                             |
+|2018/01/01|10    |Adds a Puppet module                                                                                     |
 |2018/01/01|24    |Write the last-seen cache tempfile in the statedir to support multi partition machines                   |
 |2018/01/01|      |Release 0.0.2                                                                                            |
 |2018/01/01|16    |Save the last-seen data regularly and on shutdown.  Restore state on startup                             |
