@@ -61,7 +61,7 @@ func init() {
 	prometheus.MustRegister(errCtr)
 }
 
-func (m *Limiter) Configure(ctx context.Context, key string, age time.Duration, topic string) error {
+func (m *Limiter) Configure(ctx context.Context, wg *sync.WaitGroup, key string, age time.Duration, topic string) error {
 	m.mu = &sync.Mutex{}
 	m.key = key
 	m.age = age
@@ -76,9 +76,12 @@ func (m *Limiter) Configure(ctx context.Context, key string, age time.Duration, 
 
 	m.readCache()
 
-	go m.cacher(ctx)
-	go m.scrubber(ctx)
-	go m.promUpdater(ctx)
+	wg.Add(1)
+	go m.cacher(ctx, wg)
+	wg.Add(1)
+	go m.scrubber(ctx, wg)
+	wg.Add(1)
+	go m.promUpdater(ctx, wg)
 
 	return nil
 }
@@ -160,9 +163,13 @@ func (m *Limiter) readCache() error {
 		return err
 	}
 
-	m.mu.Unlock()
-	m.scrub()
-	m.mu.Lock()
+	killtime := time.Now().Add((-1 * m.age) - (10 * time.Minute))
+
+	for i, t := range m.seen {
+		if t.Before(killtime) {
+			delete(m.seen, i)
+		}
+	}
 
 	m.log.Infof("Read %d bytes of last-seen data from cache file %s.  After scrubbing old entries the last-seen data has %d entries.", len(d), m.statefile, len(m.seen))
 
@@ -177,28 +184,35 @@ func (m *Limiter) writeCache() error {
 		return nil
 	}
 
-	tmpfile, err := ioutil.TempFile(config.StateDirectory(), "example")
-	if err != nil {
-		return err
-	}
-
 	content, err := json.Marshal(m.seen)
 	if err != nil {
+		m.log.Errorf("Could not JSON encode last seen data: %s", err)
 		return err
 	}
 
-	_, err = tmpfile.Write(content)
+	tmpfile, err := ioutil.TempFile(config.StateDirectory(), "memcache")
 	if err != nil {
+		m.log.Errorf("Could not create temp file: %s", err)
+		return err
+	}
+
+	written, err := tmpfile.Write(content)
+	if err != nil {
+		m.log.Errorf("Could not write to temp file: %s", err)
 		return err
 	}
 
 	err = tmpfile.Close()
 	if err != nil {
+		m.log.Errorf("Could not close temp file: %s", err)
 		return err
 	}
 
+	m.log.Debugf("Wrote %d bytes to temp file %s", written, tmpfile.Name())
+
 	err = os.Rename(tmpfile.Name(), m.statefile)
 	if err != nil {
+		m.log.Errorf("Could not rename file: %s", err)
 		return err
 	}
 
@@ -207,7 +221,9 @@ func (m *Limiter) writeCache() error {
 	return nil
 }
 
-func (m *Limiter) cacher(ctx context.Context) {
+func (m *Limiter) cacher(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	if m.statefile == "" {
 		m.log.Warn("Last seen timestamps cannot be saved, state_dir is not set")
 		return
@@ -236,7 +252,9 @@ func (m *Limiter) cacher(ctx context.Context) {
 	}
 }
 
-func (m *Limiter) promUpdater(ctx context.Context) {
+func (m *Limiter) promUpdater(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	ticker := time.NewTicker(10 * time.Second)
 
 	for {
@@ -265,7 +283,8 @@ func (m *Limiter) scrub() {
 	}
 }
 
-func (m *Limiter) scrubber(ctx context.Context) {
+func (m *Limiter) scrubber(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
 	ticker := time.NewTicker(1 * time.Minute)
 
 	for {

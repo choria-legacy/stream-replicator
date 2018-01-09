@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,28 +25,33 @@ var _ = Describe("Limiter/Memory", func() {
 		m      Limiter
 		ctx    context.Context
 		cancel func()
+		wg     *sync.WaitGroup
 	)
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
+		wg = &sync.WaitGroup{}
 
 		config.Load("testdata/empty.yaml")
 
 		logrus.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.FatalLevel)
+
 		m = Limiter{
 			log: logrus.WithFields(logrus.Fields{}),
 		}
-		m.Configure(ctx, "k", time.Duration(1*time.Minute), "test")
 	})
 
 	AfterEach(func() {
 		cancel()
+		wg.Wait()
 		os.Remove("testdata/test.json")
 	})
 
 	var _ = Describe("Configure", func() {
 		It("Should configure the key and age", func() {
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
+
 			Expect(m.key).To(Equal("k"))
 			Expect(m.age).To(Equal(time.Duration(1 * time.Minute)))
 			Expect(m.seen).To(BeEmpty())
@@ -53,6 +59,10 @@ var _ = Describe("Limiter/Memory", func() {
 	})
 
 	var _ = Describe("shouldProcess", func() {
+		BeforeEach(func() {
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
+		})
+
 		It("Should be true for empty values", func() {
 			Expect(m.shouldProcess("")).To(BeTrue())
 		})
@@ -77,6 +87,8 @@ var _ = Describe("Limiter/Memory", func() {
 
 	var _ = Describe("scrub", func() {
 		It("Should delete only old entries", func() {
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
+
 			m.seen["new"] = time.Now()
 			m.seen["old"] = time.Now().Add((-61 * time.Second) - (10 * time.Minute))
 			m.scrub()
@@ -87,16 +99,15 @@ var _ = Describe("Limiter/Memory", func() {
 
 	var _ = Describe("Configure", func() {
 		It("Should set the statefile to empty by default", func() {
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
+
 			Expect(m.statefile).To(BeEmpty())
 		})
 
 		It("Should set the statefile if configured", func() {
 			config.Load("testdata/stateconfig.yaml")
 
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
-			defer cancel()
-			m.Configure(ctx, "k", time.Duration(1*time.Minute), "test")
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
 
 			Expect(m.statefile).To(Equal("testdata/test.json"))
 		})
@@ -107,26 +118,24 @@ var _ = Describe("Limiter/Memory", func() {
 			config.Load("testdata/stateconfig.yaml")
 			os.Remove("testdata/test.json")
 
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
-			defer cancel()
-
-			m.Configure(ctx, "k", time.Duration(1*time.Minute), "test")
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
 		})
 
 		It("Should not write when unconfigured", func() {
-			m.writeCache()
+			err := m.writeCache()
+			Expect(err).ToNot(HaveOccurred())
 			Expect(m.statefile).ToNot(BeAnExistingFile())
 		})
 
 		It("Should write the cache", func() {
 			m.seen["test"] = time.Now()
-			m.writeCache()
+			err := m.writeCache()
+			Expect(err).ToNot(HaveOccurred())
 			Expect(m.statefile).To(BeAnExistingFile())
 
 			s := make(map[string]time.Time)
 			d, _ := ioutil.ReadFile(m.statefile)
-			err := json.Unmarshal(d, &s)
+			err = json.Unmarshal(d, &s)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(s["test"].Unix()).To(Equal(m.seen["test"].Unix()))
@@ -138,11 +147,7 @@ var _ = Describe("Limiter/Memory", func() {
 			config.Load("testdata/stateconfig.yaml")
 			os.Remove("testdata/test.json")
 
-			cancel()
-			ctx, cancel = context.WithCancel(context.Background())
-			defer cancel()
-
-			m.Configure(ctx, "k", time.Duration(1*time.Minute), "test")
+			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
 
 			m.seen["test"] = time.Now()
 			m.writeCache()
