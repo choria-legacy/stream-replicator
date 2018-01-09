@@ -68,17 +68,17 @@ func (c *Copier) Setup(name string, topic config.TopicConf) error {
 
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 
-	if c.config.Inspect != "" && c.config.MinAge != "" {
-		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
-		limiter.Configure(c.ctx, c.config, &memory.Limiter{})
-	}
-
 	return nil
 }
 
 // Run starts all the worker in a replicator
 func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	if c.config.Inspect != "" && c.config.MinAge != "" {
+		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
+		limiter.Configure(c.ctx, wg, c.config, &memory.Limiter{})
+	}
 
 	for i := 0; i < c.config.Workers; i++ {
 		w := newWorker(i, c.config, c.tls, c.Log)

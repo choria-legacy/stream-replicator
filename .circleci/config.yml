@@ -9,11 +9,11 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: set
-      - run: go get github.com/Masterminds/glide
+      - run: go get github.com/golang/dep/cmd/dep
       - run: go get github.com/onsi/ginkgo/ginkgo
-      - run: glide install
-      - run: ginkgo -p -skipMeasurements $(glide novendor)
+      - run: dep ensure -v
+      - run: ls
+      - run: ginkgo -r -skipMeasurements
       - run: mkdir -p /tmp/workspace
       - run: cd .. ; tar -czf /tmp/workspace/stream-replicator.tgz stream-replicator
       - persist_to_workspace:
