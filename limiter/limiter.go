@@ -24,12 +24,12 @@ type Inspecter interface {
 func Configure(ctx context.Context, wg *sync.WaitGroup, c config.TopicConf, ins Inspecter) error {
 	d, err := time.ParseDuration(c.MinAge)
 	if err != nil {
-		return fmt.Errorf("Could not parse duration '%s': %s", c.MinAge, err.Error())
+		return fmt.Errorf("Could not parse duration '%s': %s", c.MinAge, err)
 	}
 
 	err = ins.Configure(ctx, wg, c.Inspect, d, c.Name)
 	if err != nil {
-		return fmt.Errorf("Could not configure inspecter: %s", err.Error())
+		return fmt.Errorf("Could not configure inspecter: %s", err)
 	}
 
 	inspecter = ins

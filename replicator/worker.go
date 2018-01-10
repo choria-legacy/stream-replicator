@@ -44,7 +44,7 @@ func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	err := w.connect(ctx)
 	if err != nil {
-		w.log.Errorf("Could not start worker: %s", err.Error())
+		w.log.Errorf("Could not start worker: %s", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func (w *worker) copyf(msg *stan.Msg) {
 			// that will replicate to the right target
 			err := w.to.Publish(msg.Subject, msg.Data)
 			if err != nil {
-				w.log.Errorf("Could not publish message %d: %s", msg.Sequence, err.Error())
+				w.log.Errorf("Could not publish message %d: %s", msg.Sequence, err)
 				failedCtr.WithLabelValues(w.name, w.config.Name).Inc()
 				return err
 			}
@@ -94,7 +94,7 @@ func (w *worker) copyf(msg *stan.Msg) {
 		err := msg.Ack()
 		if err != nil {
 			ackFailedCtr.WithLabelValues(w.name, w.config.Name).Inc()
-			w.log.Errorf("Could not ack message %d: %s", msg.Sequence, err.Error())
+			w.log.Errorf("Could not ack message %d: %s", msg.Sequence, err)
 		}
 
 		return err
@@ -162,7 +162,7 @@ func (w *worker) connectSTAN(ctx context.Context, cid string, name string, urls 
 
 		conn, err = stan.Connect(cid, name, stan.NatsConn(n))
 		if err != nil {
-			w.log.Warnf("%s initial connection to the NATS Streaming broker cluster failed: %s", name, err.Error())
+			w.log.Warnf("%s initial connection to the NATS Streaming broker cluster failed: %s", name, err)
 
 			if ctx.Err() != nil {
 				w.log.Errorf("%s initial connection cancelled due to shut down", name)
@@ -217,7 +217,7 @@ func (w *worker) connectNATS(ctx context.Context, name string, urls string) (nat
 
 		natsc, err = nats.Connect(urls, options...)
 		if err != nil {
-			w.log.Warnf("%s initial connection to the NATS broker cluster failed: %s", name, err.Error())
+			w.log.Warnf("%s initial connection to the NATS broker cluster failed: %s", name, err)
 
 			if ctx.Err() != nil {
 				w.log.Errorf("%s initial connection cancelled due to shut down", name)
@@ -250,7 +250,7 @@ func (w *worker) disconCb(nc *nats.Conn) {
 	err := nc.LastError()
 
 	if err != nil {
-		w.log.Warnf("%s NATS client connection got disconnected: %s", nc.Opts.Name, err.Error())
+		w.log.Warnf("%s NATS client connection got disconnected: %s", nc.Opts.Name, err)
 	} else {
 		w.log.Warnf("%s NATS client connection got disconnected", nc.Opts.Name)
 	}
@@ -265,7 +265,7 @@ func (w *worker) closedCb(nc *nats.Conn) {
 	err := nc.LastError()
 
 	if err != nil {
-		w.log.Warnf("%s NATS client connection closed: %s", nc.Opts.Name, err.Error())
+		w.log.Warnf("%s NATS client connection closed: %s", nc.Opts.Name, err)
 	} else {
 		w.log.Warnf("%s NATS client connection closed", nc.Opts.Name)
 	}
@@ -274,6 +274,6 @@ func (w *worker) closedCb(nc *nats.Conn) {
 }
 
 func (w *worker) errorCb(nc *nats.Conn, sub *nats.Subscription, err error) {
-	w.log.Errorf("%s NATS client on %s encountered an error: %s", nc.Opts.Name, nc.ConnectedUrl(), err.Error())
+	w.log.Errorf("%s NATS client on %s encountered an error: %s", nc.Opts.Name, nc.ConnectedUrl(), err)
 	errorCtr.WithLabelValues(w.name, w.config.Name).Inc()
 }

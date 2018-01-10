@@ -109,7 +109,7 @@ func Check() (errors []string, ok bool) {
 			errors = append(errors, fmt.Sprintf("The CA %s does not contain valid PEM data", c))
 		}
 	} else {
-		errors = append(errors, fmt.Sprintf("Could not determine CA path: %s", err.Error()))
+		errors = append(errors, fmt.Sprintf("Could not determine CA path: %s", err))
 	}
 
 	if len(errors) == 0 {

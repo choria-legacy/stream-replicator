@@ -45,7 +45,7 @@ func Run() {
 
 	err := config.Load(cfile)
 	if err != nil {
-		logrus.Fatalf("Could not parse configuration: %s", err.Error())
+		logrus.Fatalf("Could not parse configuration: %s", err)
 		os.Exit(1)
 	}
 
@@ -72,7 +72,7 @@ func writePID(pidfile string) {
 
 	err := ioutil.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
 	if err != nil {
-		logrus.Fatalf("Could not write PID: %s", err.Error())
+		logrus.Fatalf("Could not write PID: %s", err)
 		os.Exit(1)
 	}
 }
@@ -95,7 +95,7 @@ func interruptHandler() {
 func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic config.TopicConf, topicname string) {
 	err := rep.Setup(topicname, topic)
 	if err != nil {
-		logrus.Errorf("Could not configure Replicator: %s", err.Error())
+		logrus.Errorf("Could not configure Replicator: %s", err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func configureLogging() {
 
 		file, err := os.OpenFile(config.LogFile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
-			logrus.Fatalf("Cannot open log file %s: %s", config.LogFile(), err.Error())
+			logrus.Fatalf("Cannot open log file %s: %s", config.LogFile(), err)
 			os.Exit(1)
 		}
 

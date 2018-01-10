@@ -56,17 +56,17 @@ func Load(file string) error {
 
 	c, err := ioutil.ReadFile(file)
 	if err != nil {
-		return fmt.Errorf("file %s could not be read: %s", file, err.Error())
+		return fmt.Errorf("file %s could not be read: %s", file, err)
 	}
 
 	j, err := yaml.YAMLToJSON(c)
 	if err != nil {
-		return fmt.Errorf("file %s could not be parsed: %s", file, err.Error())
+		return fmt.Errorf("file %s could not be parsed: %s", file, err)
 	}
 
 	err = json.Unmarshal(j, &config)
 	if err != nil {
-		return fmt.Errorf("Could not parse config file %s as YAML: %s", file, err.Error())
+		return fmt.Errorf("Could not parse config file %s as YAML: %s", file, err)
 	}
 
 	if config.TLS != nil {
