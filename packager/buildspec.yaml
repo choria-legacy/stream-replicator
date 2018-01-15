@@ -1,0 +1,46 @@
+flags_map:
+  Version: github.com/choria-io/stream-replicator/cmd.version
+  SHA: github.com/choria-io/stream-replicator/cmd.sha
+
+foss:
+  compile_targets:
+    defaults:
+      output: stream-replicator-{{version}}-{{os}}-{{arch}}
+
+    64bit_linux:
+      os: linux
+      arch: amd64
+
+    32bit_linux:
+      os: linux
+      arch: 386
+
+  packages:
+    defaults:
+      name: stream-replicator
+      bindir: /usr/sbin
+      etcdir: /etc/stream-replicator
+      release: 1
+      manage_conf: 1
+      contact: rip@devco.net
+
+    el6_32:
+      dist: el6
+      template: el/el6
+      target_arch: i686
+      binary: 32bit_linux
+
+    el6_64:
+      dist: el6
+      template: el/el6
+      target_arch: x86_64
+      binary: 64bit_linux
+
+    el7_64:
+      dist: el7
+      template: el/el7
+      target_arch: x86_64
+      binary: 64bit_linux
+
+    puppet:
+      template: puppet/puppet
