@@ -1,0 +1,24 @@
+package: github.com/choria-io/stream-replicator
+import:
+- package: github.com/ghodss/yaml
+  version: ^1
+- package: github.com/nats-io/go-nats
+  version: ^1
+- package: github.com/nats-io/go-nats-streaming
+  version: "*"
+- package: github.com/prometheus/client_golang
+  version: ">= 0.9.0-pre1"
+  subpackages:
+  - prometheus
+  - prometheus/promhttp
+- package: github.com/sirupsen/logrus
+  version: ^1
+- package: github.com/tidwall/gjson
+  version: ^1
+- package: gopkg.in/alecthomas/kingpin.v2
+  version: ^2
+testImport:
+- package: github.com/onsi/ginkgo
+  version: ^1
+- package: github.com/onsi/gomega
+  version: ^1
