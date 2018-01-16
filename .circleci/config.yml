@@ -21,36 +21,6 @@ jobs:
           paths:
             - stream-replicator.tgz
 
-  build_puppet_module:
-    docker:
-      - image: circleci/golang:1.9
-
-    working_directory: /go/src/github.com/choria-io/stream-replicator
-
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-
-      - run: cd .. ; tar -xzf /tmp/workspace/stream-replicator.tgz
-
-      - run: sudo apt-get update
-      - run: sudo apt-get install rake puppet
-      - run: |
-          cd puppet
-          sed -i.bak -re "s/(.+\"version\": \").+/\1${CIRCLE_TAG}\",/" metadata.json
-          sed -i.bak -re "s/(.+version = \").+/\1${CIRCLE_TAG}\",/" manifests/init.pp
-
-          puppet module build .
-
-          mkdir -p /tmp/workspace/artifacts/puppet
-
-          cp pkg/*.tar.gz /tmp/workspace/artifacts/puppet/
-
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - artifacts
-
   build_el6_64bit_rpms:
     docker:
       - image: circleci/golang:1.9
@@ -58,9 +28,9 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - DIST: el6
-      - ARCH: amd64
-      - RPMARCH: x86_64
+      - PACKAGE: el6_64
+      - BUILD: foss
+      - BUILDER: ripienaar/choria-packager:oel5-go9.2
 
     steps: &std_build_steps
       - setup_remote_docker
@@ -68,29 +38,46 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
 
-      - run: docker create -v /build --name store alpine:3.4 /bin/true
+      - run: docker create -v /go -v /build/artifacts --name store alpine:3.4 /bin/true
       - run: cd .. ; tar -xzf /tmp/workspace/stream-replicator.tgz
 
-      - run: sudo apt-get update
-      - run: sudo apt-get install rake
+      - run: docker cp /go store:/
 
-      - run: VERSION=${CIRCLE_TAG} rake build
-      - run: VERSION=${CIRCLE_TAG} ./build/prepare.sh
-
-      - run: docker run --volumes-from store --rm -e ARCH=${RPMARCH} -e VERSION=${CIRCLE_TAG} ripienaar/rpmbuilder:5
       - run: |
-          mkdir -p /tmp/workspace/artifacts/${DIST}/${ARCH}
+          if [ -z "${CIRCLE_TAG}" ]
+          then
+            VERSION=${CIRCLE_SHA1}
+          else
+            VERSION=${CIRCLE_TAG}
+          fi
 
-          for i in $(docker run --volumes-from store --rm ripienaar/rpmbuilder:5 ls /build/|grep rpm);do
-            docker cp store:/build/${i} /tmp/workspace/artifacts/${DIST}/${ARCH}
+          docker run --volumes-from store --rm -e SOURCE_DIR=/go/src/github.com/choria-io/stream-replicator -e CIRCLE_SHA1=${CIRCLE_SHA1} -e BUILD=${BUILD} -e VERSION=${VERSION} -e ARTIFACTS=/build/artifacts -e PACKAGE=${PACKAGE} ${BUILDER}
+
+      - run: |
+          mkdir -p /tmp/workspace/artifacts/${BUILD}/${PACKAGE}
+          for i in $(docker run --volumes-from store --rm ${BUILDER} ls /build/artifacts);do
+            docker cp store:/build/artifacts/${i} /tmp/workspace/artifacts/${BUILD}/${PACKAGE}
           done
-
-          ls -l /tmp/workspace/artifacts/${DIST}/${ARCH}
+          ls -l /tmp/workspace/artifacts/${BUILD}/${PACKAGE}
 
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - artifacts
+
+  build_el6_32bit_rpms:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/choria-io/stream-replicator
+
+    environment:
+      - PACKAGE: el6_32
+      - BUILD: foss
+      - BUILDER: ripienaar/choria-packager:oel5-go9.2
+
+    steps:
+      *std_build_steps
 
   build_el7_64bit_rpms:
     docker:
@@ -99,12 +86,27 @@ jobs:
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      - DIST: el7
-      - ARCH: amd64
-      - RPMARCH: x86_64
+      - PACKAGE: el7_64
+      - BUILD: foss
+      - BUILDER: ripienaar/choria-packager:oel5-go9.2
 
     steps:
       *std_build_steps
+
+  build_puppet_module:
+    docker:
+      - image: circleci/golang:1.9
+
+    working_directory: /go/src/github.com/choria-io/stream-replicator
+
+    environment:
+      - PACKAGE: puppet
+      - BUILD: foss
+      - BUILDER: ripienaar/choria-packager:el7-go9.2-puppet
+
+    steps:
+      *std_build_steps
+
 
   gather_artifacts:
     docker:
@@ -138,29 +140,35 @@ workflows:
             branches:
               ignore: /.*/
 
-      - build_el6_64bit_rpms:
-          requires:
-           - hold
+      - build_el6_32bit_rpms:
           filters:
             *semver_only
+          requires:
+           - hold
+
+      - build_el6_64bit_rpms:
+          filters:
+            *semver_only
+          requires:
+           - hold
 
       - build_el7_64bit_rpms:
-          requires:
-           - hold
           filters:
             *semver_only
+          requires:
+           - hold
 
       - build_puppet_module:
-          requires:
-           - hold
           filters:
             *semver_only
+          requires:
+           - hold
 
       - gather_artifacts:
           requires:
-            - hold
-            - build_el6_64bit_rpms
-            - build_el7_64bit_rpms
-            - build_puppet_module
+             - build_el6_32bit_rpms
+             - build_el6_64bit_rpms
+             - build_el7_64bit_rpms
+             - build_puppet_module
           filters:
             *semver_only
