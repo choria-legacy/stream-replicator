@@ -22,7 +22,6 @@ foss:
       etcdir: /etc/stream-replicator
       release: 1
       manage_conf: 1
-      contact: rip@devco.net
 
     el6_32:
       dist: el6
