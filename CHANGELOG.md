@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/01/17|      |Release 0.0.5                                                                                            |
+|2018/01/16|      |Rework packaging to use new choria packaging framework                                                   |
+|2018/01/03|27    |During condrestart on el6 handle all known pids not just configured ones                                 |
 |2018/01/04|      |Release 0.0.4                                                                                            |
 |2018/01/03|38    |Improve uniqueness of client names to make multi site deployments easier                                 |
 |2018/01/03|35    |Complete support for managing el6 systems with Puppet                                                    |
