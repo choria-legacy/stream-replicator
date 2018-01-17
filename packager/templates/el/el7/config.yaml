@@ -6,4 +6,6 @@ required_properties:
  - manage_conf
  - dist
 
-artifacts: /usr/src/redhat/**/*.rpm
+artifacts:
+ - /usr/src/redhat/**/*.rpm
+ - /root/rpmbuild/**/*.rpm
