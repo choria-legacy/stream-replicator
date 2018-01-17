@@ -19,8 +19,8 @@ var (
 	rep     = replicator.Copier{}
 	cancel  func()
 	ctx     context.Context
-	version string
-	sha     string
+	version = "unknown"
+	sha     = "unknown"
 )
 
 func Run() {

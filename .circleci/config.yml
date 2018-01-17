@@ -50,7 +50,7 @@ jobs:
             VERSION=${CIRCLE_TAG}
           fi
 
-          docker run --volumes-from store --rm -e SOURCE_DIR=/go/src/github.com/choria-io/stream-replicator -e CIRCLE_SHA1=${CIRCLE_SHA1} -e BUILD=${BUILD} -e VERSION=${VERSION} -e ARTIFACTS=/build/artifacts -e PACKAGE=${PACKAGE} ${BUILDER}
+          docker run --volumes-from store --rm -e SOURCE_DIR=/go/src/github.com/choria-io/stream-replicator -e SHA1=${CIRCLE_SHA1} -e BUILD=${BUILD} -e VERSION=${VERSION} -e ARTIFACTS=/build/artifacts -e PACKAGE=${PACKAGE} ${BUILDER}
 
       - run: |
           mkdir -p /tmp/workspace/artifacts/${BUILD}/${PACKAGE}
