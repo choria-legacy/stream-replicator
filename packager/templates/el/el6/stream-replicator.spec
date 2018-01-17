@@ -71,7 +71,7 @@ fi
 %{bindir}/%{pkgname}
 /etc/logrotate.d/%{pkgname}
 %attr(755, root, root)/etc/init.d/%{pkgname}
-%attr(644, root, root)/etc/sysconfig/%{pkgname}
+%attr(644, root, root) %config(noreplace)/etc/sysconfig/%{pkgname}
 %attr(755, nobody, nobody)/var/run/%{pkgname}
 %attr(640, nobody, nobody)/var/log/%{pkgname}.log
 %attr(640, nobody, nobody)/var/lib/%{pkgname}
