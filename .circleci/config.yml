@@ -122,6 +122,21 @@ jobs:
 
 workflows:
   version: 2
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build_el7_64bit_rpms
+
+      - gather_artifacts:
+          requires:
+            - build_el7_64bit_rpms
+
   test_and_ship:
     jobs:
       - test:
