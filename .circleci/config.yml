@@ -20,7 +20,7 @@ jobs:
           paths:
             - stream-replicator.tgz
 
-  build_el6_64bit_rpms:
+  build_el6_64bit_rpms: &pkg_build
     docker:
       - image: circleci/golang:1.9
 
@@ -43,11 +43,16 @@ jobs:
       - run: docker cp /go store:/
 
       - run: |
+          VERSION="${CIRCLE_TAG}"
+
           if [ -z "${CIRCLE_TAG}" ]
           then
             VERSION=${CIRCLE_SHA1}
-          else
-            VERSION=${CIRCLE_TAG}
+
+            if [ ! -z "${NIGHTLY}" ]
+            then
+              VERSION="0.99.0.$(date +'%Y%m%d')"
+            fi
           fi
 
           docker run --volumes-from store --rm -e SOURCE_DIR=/go/src/github.com/choria-io/stream-replicator -e SHA1=${CIRCLE_SHA1} -e BUILD=${BUILD} -e VERSION=${VERSION} -e ARTIFACTS=/build/artifacts -e PACKAGE=${PACKAGE} ${BUILDER}
@@ -65,47 +70,25 @@ jobs:
             - artifacts
 
   build_el6_32bit_rpms:
-    docker:
-      - image: circleci/golang:1.9
-
-    working_directory: /go/src/github.com/choria-io/stream-replicator
-
+    <<: *pkg_build
     environment:
       - PACKAGE: el6_32
       - BUILD: foss
-      - BUILDER: ripienaar/choria-packager:oel5-go9.2
-
-    steps:
-      *std_build_steps
+      - BUILDER: choria/packager:oel5-go9.2
 
   build_el7_64bit_rpms:
-    docker:
-      - image: circleci/golang:1.9
-
-    working_directory: /go/src/github.com/choria-io/stream-replicator
-
+    <<: *pkg_build
     environment:
       - PACKAGE: el7_64
       - BUILD: foss
-      - BUILDER: ripienaar/choria-packager:oel5-go9.2
-
-    steps:
-      *std_build_steps
+      - BUILDER: choria/packager:oel5-go9.2
 
   build_puppet_module:
-    docker:
-      - image: circleci/golang:1.9
-
-    working_directory: /go/src/github.com/choria-io/stream-replicator
-
+    <<: *pkg_build
     environment:
       - PACKAGE: puppet
       - BUILD: foss
-      - BUILDER: ripienaar/choria-packager:el7-go9.2-puppet
-
-    steps:
-      *std_build_steps
-
+      - BUILDER: choria/packager:el7-go9.2-puppet
 
   gather_artifacts:
     docker:
@@ -133,6 +116,7 @@ workflows:
     jobs:
       - test
       - build_el7_64bit_rpms:
+          context: org-global
           requires:
             - test
 
