@@ -131,7 +131,10 @@ workflows:
               only:
                 - master
     jobs:
-      - build_el7_64bit_rpms
+      - test
+      - build_el7_64bit_rpms:
+          requires:
+            - test
 
       - gather_artifacts:
           requires:
