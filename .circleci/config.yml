@@ -98,17 +98,31 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
 
-      - run: ls /tmp/workspace
-
       - store_artifacts:
           path: /tmp/workspace
+
+  nightly_packagecloud:
+    docker:
+      - image: circleci/ruby
+
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+
+      - run: gem install package_cloud
+
+      - run: |
+          for i in $(find /tmp/workspace -name \*.rpm|grep -v src.rpm)
+          do
+            package_cloud push choria/nightly ${i}
+          done
 
 workflows:
   version: 2
   nightly:
     triggers:
       - schedule:
-          cron: "0 * * * *"
+          cron: "30 * * * *"
           filters:
             branches:
               only:
@@ -123,6 +137,10 @@ workflows:
       - gather_artifacts:
           requires:
             - build_el7_64bit_rpms
+
+      - nightly_packagecloud:
+          requires:
+            - gather_artifacts
 
   test_and_ship:
     jobs:
