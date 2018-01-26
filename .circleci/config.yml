@@ -74,14 +74,14 @@ jobs:
     environment:
       - PACKAGE: el6_32
       - BUILD: foss
-      - BUILDER: choria/packager:oel5-go9.2
+      - BUILDER: choria/packager:el7-go9.2
 
   build_el7_64bit_rpms:
     <<: *pkg_build
     environment:
       - PACKAGE: el7_64
       - BUILD: foss
-      - BUILDER: choria/packager:oel5-go9.2
+      - BUILDER: choria/packager:el7-go9.2
 
   build_puppet_module:
     <<: *pkg_build
@@ -108,7 +108,7 @@ workflows:
   nightly:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 * * * *"
           filters:
             branches:
               only:
