@@ -220,6 +220,25 @@ On a RHEL7 system the systemd unit files are using templating, if you have a con
 
 On a RHEL6 system you can edit `/etc/sysconfig/stream-replicator` and set `TOPICS="cmdb monitor"` to start a instance for the configured topics matching the names.
 
+## Nightly Builds
+
+Nightly RPMs are published for EL7 64bit in the following repo:
+
+```ini
+[choria_nightly]
+name=choria_nightly
+baseurl=https://packagecloud.io/choria/nightly/el/7/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/choria/nightly/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+```
+
+Nightly packages are versioned like `stream-replicator-0.99.0.20180126-1.el7.x86_64.rpm`
+
 ## Puppet Module
 
 A Puppet module to install and manage the Stream Replicator can be found on the Puppet Forge as `choria/stream_replicator`
