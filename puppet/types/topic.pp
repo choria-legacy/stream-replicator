@@ -10,5 +10,6 @@ type Stream_replicator::Topic = Struct[{
   inspect => Optional[String],
   age => Optional[Pattern[/\d+(m|h)/]],
   monitor => Optional[Integer],
-  name => Optional[String]
+  name => Optional[String],
+  advisory => Optional[Stream_replicator::Advisory]
 }]

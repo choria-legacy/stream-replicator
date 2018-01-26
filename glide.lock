@@ -1,5 +1,5 @@
-hash: f7913262dfc771a8bd6cfbb83fb8bab8a162567427641ec4745a7c723d011348
-updated: 2018-01-16T16:47:45.214722+01:00
+hash: 6bd9d6b6ddb940caaac492c5ec45696e95c0af9562a72c9c0bb8db79aff79e3c
+updated: 2018-01-27T13:29:28.576934+01:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -13,8 +13,12 @@ imports:
   - quantile
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
+- name: github.com/go-sql-driver/mysql
+  version: cd4cb909ce1a31435164be29bf3682031f61539a
+  repo: https://github.com/go-sql-driver/mysql
 - name: github.com/gogo/protobuf
-  version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
+  version: 99cb9b23110011cc45571c901ecae6f6f5e65cd3
+  repo: https://github.com/gogo/protobuf
   subpackages:
   - gogoproto
   - proto
@@ -23,10 +27,23 @@ imports:
   version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
   subpackages:
   - proto
+- name: github.com/lib/pq
+  version: 8c6ee72f3e6bcb1542298dd5f76cb74af9742cec
+  repo: https://github.com/lib/pq
+  subpackages:
+  - oid
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
+- name: github.com/nats-io/gnatsd
+  version: 12a5ced612f30aa511906c0de12a124233752f70
+  subpackages:
+  - conf
+  - logger
+  - server
+  - server/pse
+  - util
 - name: github.com/nats-io/go-nats
   version: d66cb54e6b7bdd93f0b28afc8450d84c780dfb68
   subpackages:
@@ -36,8 +53,16 @@ imports:
   version: 6e620057a207bd61e992c1c5b6a2de7b6a4cb010
   subpackages:
   - pb
+- name: github.com/nats-io/nats-streaming-server
+  version: e2d5e2dc702d5f5a2d4ae1b1841d87a42b94cc00
+  subpackages:
+  - logger
+  - server
+  - spb
+  - stores
+  - util
 - name: github.com/nats-io/nuid
-  version: 289cccf02c178dc782430d534e3c1f5b72af807f
+  version: 33c603157d6fd1b0ac2599bcc4a286b36479a06d
 - name: github.com/prometheus/client_golang
   version: 967789050ba94deca04a5e84cce8ad472ce313c1
   subpackages:
@@ -48,33 +73,46 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 2e54d0b93cba2fd133edc32211dcc32c06ef72ca
+  version: 89604d197083d4781071d3c65855d24ecfb0a563
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: a6e9df898b1336106c743392c48ee0b71f5c4efa
+  version: b15cd069a83443be3154b719d0cc9fe8117f09fb
   subpackages:
   - xfs
 - name: github.com/sirupsen/logrus
   version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
 - name: github.com/tidwall/gjson
-  version: e62d62a3e1e9f324346170bbc04333341f803dfb
+  version: 87033efcaec6215741137e8ca61952c53ef2685d
 - name: github.com/tidwall/match
-  version: 173748da739a410c5b0b813b956f89ff94730b4c
+  version: 1731857f09b1f38450e2c12409748407822dc6be
 - name: golang.org/x/crypto
   version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
+  - bcrypt
+  - blowfish
   - ssh/terminal
 - name: golang.org/x/sys
   version: f7928cfef4d09d1b080aa2b6fd3ca9ba1567c733
   subpackages:
   - unix
+  - windows
+  - windows/registry
+  - windows/svc
+  - windows/svc/debug
+  - windows/svc/eventlog
+  - windows/svc/mgr
+- name: google.golang.org/appengine
+  version: 9d8544a6b2c7df9cff240fcf92d7b2f59bc13416
+  repo: https://github.com/golang/appengine
+  subpackages:
+  - cloudsql
 - name: gopkg.in/alecthomas/kingpin.v2
   version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/yaml.v2
-  version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
+  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 testImports:
 - name: github.com/onsi/ginkgo
   version: 9eda700730cba42af70d53180f9dcce9266bc2bc
@@ -111,7 +149,7 @@ testImports:
   - matchers/support/goraph/util
   - types
 - name: golang.org/x/net
-  version: dc871a5d77e227f5bbf6545176ef3eeebf87e76e
+  version: 5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec
   subpackages:
   - html
   - html/atom

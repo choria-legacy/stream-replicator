@@ -17,11 +17,17 @@ First time it connects it attempts to replicate all messages, as the subscriptio
 
 ## Status
 
-This is a pretty new project and not yet used in production, use with caution and I'd love any feedback you might have - especially design ideas about multi worker order preserving replication!
+This is a pretty new project that is being used in production, however as it is new and developing use with caution. I'd love any feedback you might have - especially design ideas about multi worker order preserving replication!
 
-Feature wise the only real remaining thing on my initial wishlist is to make the current undocumented SSL configuration be topic specific, but with the ability to have a global configuration - and then document it.  Apart from that this does what I need.  I've tested it at some scale and it performs really well but not yet running it for more than a few days.
+Feature wise I have a few TODOs:
 
-Initial packages for el6 and el7 64bit systems are now on the Choria YUM repository, see below.
+  * Add a control plane by embedding a Choria server
+  * Make the current undocumented SSL configuration be topic specific, but with the ability to have a global configuration - and then document it
+
+Initial packages for el6 and 7 64bit systems are now on the Choria YUM repository,
+see below.
+
+[![CircleCI](https://circleci.com/gh/choria-io/stream-replicator/tree/master.svg?style=svg)](https://circleci.com/gh/choria-io/stream-replicator/tree/master)
 
 ## Configuration
 
@@ -149,6 +155,48 @@ topics:
         age: 1h
 ```
 
+A companion feature to this one lets you send advisories about when machines stop responding, since with this enabled internally every sender is tracked we can use this to also identify nodes that did not send data in a given interval and then send alerts.
+
+```yaml
+topics:
+    dc1_cmdb:
+        topic: acme.cmdb
+        source_url: nats://source1:4222,nats://source2:4222
+        source_cluster_id: dc1
+        target_url: nats://target1:4222,nats://target2:4222
+        target_cluster_id: dc2
+        inspect: sender
+        age: 1h
+        advisory:
+          target: sr.advisories.cmdb
+          cluster: target  # or source
+          age: 30m
+```
+
+Now advisories will be sent to the NATS Streaming target `sr.advisories.cmdb`:
+
+ * The first time a node is seen to not have responded in 30 minutes.  A `timeout` event is sent.
+ * If the node is seen again before max age exceeds. A `recover` event is sent.
+ * When the node exceeds the max age for the topic - 1 hour here. An `expire` event is sent.
+ 
+
+Once a node is past max age we forget it ever existed - but when it comes back it's data will immediately be replicated so you can do recovery logic that way for really long outages.
+
+A sample advisory can be seen below:
+
+```json
+{
+    "$schema":"https://choria.io/schemas/sr/v1/age_advisory.json",
+    "inspect":"sender",
+    "value":"test",
+    "age":1000,
+    "seen":1516987895,
+    "replicator":"testing",
+    "timestamp":1516987895,
+    "event":"timeout"
+}
+```
+
 ## About client and queue group names
 
 By default if you replicate topic `acme.cmdb` and the config name is `cmdb` the client name for the replicator will be `dc1_cmdb_acme_cmdb_stream_replicator_n` where `n` is the number of the worker.
@@ -197,6 +245,9 @@ In all cases the `name` label is the configured name or generated one as describ
 |`stream_replicator_limiter_memory_skipped`|Number of times the memory limiter determined a message should be skipped|
 |`stream_replicator_limiter_memory_passed`|Number of times the memory limiter allowed a message to be processed|
 |`stream_replicator_limiter_memory_errors`|Number of times the processor function returned an error|
+|`stream_replicator_advisories_down`|Number of advisories that were sent when nodes went down|
+|`stream_replicator_advisories_up`|Number of advisories that were sent when nodes recovered before expiry deadline|
+|`stream_replicator_advisories_expired`|Number of advisories sent when nodes expired before the deadline|
 
 A sample Grafana dashboard can be found in [dashboard.json](dashboard.json), it will make a graph along these lines:
 
@@ -207,13 +258,16 @@ A sample Grafana dashboard can be found in [dashboard.json](dashboard.json), it 
 RPMs are hosted in the Choria yum repository for el6 and 7 64bit systems:
 
 ```ini
-[choria]
-name=Choria Orchestrator - $architecture
-baseurl=https://dl.bintray.com/choria/el-yum/el$releasever/$basearch
+[choria_release]
+name=choria_release
+baseurl=https://packagecloud.io/choria/release/el/$releasever/$basearch
+repo_gpgcheck=1
 gpgcheck=0
-repo_gpgcheck=0
 enabled=1
-protect=1
+gpgkey=https://packagecloud.io/choria/release/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
 ```
 
 On a RHEL7 system the systemd unit files are using templating, if you have a configuration section for `cmdb` you would run that using `systemctl start stream-replicator@cmdb`.
@@ -227,7 +281,7 @@ Nightly RPMs are published for EL7 64bit in the following repo:
 ```ini
 [choria_nightly]
 name=choria_nightly
-baseurl=https://packagecloud.io/choria/nightly/el/7/$basearch
+baseurl=https://packagecloud.io/choria/nightly/el/$releasever/$basearch
 repo_gpgcheck=1
 gpgcheck=0
 enabled=1
@@ -237,8 +291,12 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 metadata_expire=300
 ```
 
-Nightly packages are versioned like `stream-replicator-0.99.0.20180126-1.el7.x86_64.rpm`
+Nightly packages are versioned `0.99.0` with a date portion added:  `stream-replicator-0.99.0.20180126-1.el7.x86_64.rpm`
 
 ## Puppet Module
 
 A Puppet module to install and manage the Stream Replicator can be found on the Puppet Forge as `choria/stream_replicator`
+
+## Thanks
+
+<img src="https://packagecloud.io/images/packagecloud-badge.png" width="158">

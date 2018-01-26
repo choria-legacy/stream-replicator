@@ -1,0 +1,38 @@
+logfile: /tmp/log
+state_dir: /var/cache/stream-replicator
+debug: true
+verbose: false
+
+tls:
+  scheme: manual
+  ssl_dir: /tmp/tls
+  ca: ca.pem
+  cert: cert.pem
+  key: key.pem
+
+topics:
+    dc1_cmdb:
+        topic: acme.cmdb
+        source_url: nats://source1:4222,nats://source2:4222
+        source_cluster_id: dc1
+        target_url: nats://target1:4222,nats://target2:4222
+        target_cluster_id: dc2
+        inspect: sender
+        age: 1h
+        advisory:
+          target: sr.advisories.cmdb
+          cluster: target  # or source
+          age: 30m
+
+    dc3_cmdb:
+        topic: acme.cmdb
+        source_url: nats://source3:4222,nats://source4:4222
+        source_cluster_id: dc3
+        target_url: nats://target1:4222,nats://target2:4222
+        target_cluster_id: dc2
+        inspect: sender
+        age: 1h
+        advisory:
+          target: sr.advisories.cmdb
+          cluster: target
+          age: 30m
