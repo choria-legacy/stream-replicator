@@ -112,9 +112,9 @@ jobs:
       - run: gem install package_cloud
 
       - run: |
-          for i in $(find /tmp/workspace -name \*.rpm|grep -v src.rpm)
+          for i in $(find /tmp/workspace -name \*.el7.\*.rpm|grep -v src.rpm)
           do
-            package_cloud push choria/nightly ${i}
+            package_cloud push choria/nightly/el/7 ${i}
           done
 
 workflows:
@@ -122,7 +122,7 @@ workflows:
   nightly:
     triggers:
       - schedule:
-          cron: "30 * * * *"
+          cron: "15 * * * *"
           filters:
             branches:
               only:
