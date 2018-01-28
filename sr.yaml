@@ -1,0 +1,14 @@
+state_dir: /tmp
+topics:
+    cmdb:
+        topic: cmdb
+        source_url: nats://dev1.devco.net:34222
+        source_cluster_id: left
+        target_url: nats://dev1.devco.net:35222
+        target_cluster_id: right
+        inspect: sender
+        age: 5m
+        advisory:
+          target: advisory
+          cluster: source  # or source
+          age: 1m

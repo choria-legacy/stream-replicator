@@ -40,21 +40,6 @@ var (
 		Help: "How long it took to process messages",
 	}, []string{"name", "worker"})
 
-	reconnectCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "stream_replicator_connection_reconnections",
-		Help: "Number of times the connector reconnected to the middleware",
-	}, []string{"name", "worker"})
-
-	closedCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "stream_replicator_connection_closed",
-		Help: "Number of times the connection was closed",
-	}, []string{"name", "worker"})
-
-	errorCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "stream_replicator_connection_errors",
-		Help: "Number of times the connection encountered an error",
-	}, []string{"name", "worker"})
-
 	sequenceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "stream_replicator_current_sequence",
 		Help: "The current sequence number being copied",
@@ -69,8 +54,5 @@ func init() {
 	prometheus.MustRegister(failedCtr)
 	prometheus.MustRegister(ackFailedCtr)
 	prometheus.MustRegister(processTime)
-	prometheus.MustRegister(reconnectCtr)
-	prometheus.MustRegister(closedCtr)
-	prometheus.MustRegister(errorCtr)
 	prometheus.MustRegister(sequenceGauge)
 }

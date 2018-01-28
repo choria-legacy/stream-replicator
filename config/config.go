@@ -33,6 +33,7 @@ type TopicConf struct {
 	MinAge      string `json:"age"`
 	Name        string
 	MonitorPort int `json:"monitor"`
+	Advisory    *AdvisoryConf
 }
 
 // TLSConf describes the TLS config for a NATS connection
@@ -42,6 +43,12 @@ type TLSConf struct {
 	CA     string `json:"ca"`
 	Cert   string `json:"cert"`
 	Key    string `json:"key"`
+}
+
+type AdvisoryConf struct {
+	Target  string `json:"target"`
+	Cluster string `json:"cluster" validate:"enum=source,target"`
+	Age     string `json:"age"`
 }
 
 var config = replications{
@@ -56,7 +63,7 @@ func Load(file string) error {
 
 	c, err := ioutil.ReadFile(file)
 	if err != nil {
-		return fmt.Errorf("file %s could not be read: %s", file, err)
+		return fmt.Errorf("config file could not be read: %s", err)
 	}
 
 	j, err := yaml.YAMLToJSON(c)

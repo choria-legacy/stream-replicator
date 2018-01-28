@@ -1,6 +1,13 @@
 require "securerandom"
 require "yaml"
 
+task :default => [:test]
+
+desc "Run just tests no measurements"
+task :test do
+  sh "ginkgo -r -skipMeasurements ."
+end
+
 desc "Builds packages"
 task :build do
     version = ENV["VERSION"] || "development"

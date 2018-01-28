@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/choria-io/stream-replicator/advisor"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/limiter"
 	"github.com/choria-io/stream-replicator/limiter/memory"
@@ -77,7 +78,17 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	if c.config.Inspect != "" && c.config.MinAge != "" {
 		c.Log.Infof("Configuring limiter with on key %s with min age %s", c.config.Inspect, c.config.MinAge)
-		limiter.Configure(c.ctx, wg, c.config, &memory.Limiter{})
+
+		advisor.Configure(c.tls, c.config)
+
+		err := limiter.Configure(c.ctx, wg, c.config, &memory.Limiter{})
+		if err != nil {
+			c.Log.Errorf("Could not configure limiter: %s", err)
+			c.cancel()
+			return
+		}
+
+		advisor.Connect(c.ctx, wg)
 	}
 
 	for i := 0; i < c.config.Workers; i++ {

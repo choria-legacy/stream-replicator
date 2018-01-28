@@ -15,7 +15,7 @@ func Configure(personality string, opts ...Option) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	cfg := &config{}
+	cfg = &config{}
 	for _, opt := range opts {
 		if err := opt(cfg); err != nil {
 			return err

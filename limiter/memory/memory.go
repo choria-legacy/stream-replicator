@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/choria-io/stream-replicator/advisor"
+
 	"github.com/choria-io/stream-replicator/config"
 	stan "github.com/nats-io/go-nats-streaming"
 	"github.com/prometheus/client_golang/prometheus"
@@ -101,6 +103,8 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 		skippedCtr.WithLabelValues(m.key, m.topic).Inc()
 	}
 
+	advisor.Record(value)
+
 	err := f(msg, process)
 	if err != nil {
 		errCtr.WithLabelValues(m.key, m.topic).Inc()
@@ -109,7 +113,7 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 
 	if process {
 		m.mu.Lock()
-		m.seen[value] = time.Now()
+		m.seen[value] = time.Now().UTC()
 		m.mu.Unlock()
 	}
 
@@ -129,7 +133,7 @@ func (m *Limiter) shouldProcess(value string) bool {
 		return true
 	}
 
-	oldest := time.Now().Add(-1 * m.age)
+	oldest := time.Now().UTC().Add(-1 * m.age)
 
 	if t.Before(oldest) {
 		return true
@@ -163,12 +167,15 @@ func (m *Limiter) readCache() error {
 		return err
 	}
 
-	killtime := time.Now().Add((-1 * m.age) - (10 * time.Minute))
+	killtime := time.Now().UTC().Add((-1 * m.age) - (10 * time.Minute))
 
 	for i, t := range m.seen {
 		if t.Before(killtime) {
 			delete(m.seen, i)
+			continue
 		}
+
+		advisor.RecordTime(i, t)
 	}
 
 	m.log.Infof("Read %d bytes of last-seen data from cache file %s.  After scrubbing old entries the last-seen data has %d entries.", len(d), m.statefile, len(m.seen))
@@ -274,11 +281,12 @@ func (m *Limiter) scrub() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	killtime := time.Now().Add((-1 * m.age) - (10 * time.Minute))
+	killtime := time.Now().UTC().Add((-1 * m.age) - (1 * time.Minute))
 
 	for i, t := range m.seen {
 		if t.Before(killtime) {
 			delete(m.seen, i)
+			advisor.Expire(i)
 		}
 	}
 }
