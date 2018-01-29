@@ -43,6 +43,7 @@ var _ = Describe("Advisor", func() {
 			TargetURL: "nats://localhost:44222",
 			Name:      "testing",
 			Inspect:   "sender",
+			MinAge:    "2h",
 			Advisory: &config.AdvisoryConf{
 				Age:     "15m",
 				Cluster: "source",
@@ -153,32 +154,6 @@ var _ = Describe("Advisor", func() {
 		})
 	})
 
-	var _ = Describe("Expire", func() {
-		It("Should noop when not configured", func() {
-			Expect(seen).To(BeEmpty())
-			Expire("test")
-			Expect(seen).To(BeEmpty())
-			Expect(out).To(HaveLen(0))
-		})
-
-		It("Should advise and delete all traces of thenode", func() {
-			err := Configure(true, goodconf)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(out).To(HaveLen(0))
-			Expect(seen).To(BeEmpty())
-			Record("test")
-			Expect(seen).To(HaveLen(1))
-			Expire("test")
-			Expect(seen).To(HaveLen(0))
-			Expect(out).To(HaveLen(1))
-
-			msg := <-out
-			Expect(msg.Value).To(Equal("test"))
-			Expect(msg.Event).To(Equal(Expired))
-		})
-	})
-
 	var _ = Describe("advise", func() {
 		It("Should advise all senders not seen in the configured time", func() {
 			err := Configure(true, goodconf)
@@ -186,21 +161,29 @@ var _ = Describe("Advisor", func() {
 
 			Expect(seen).To(BeEmpty())
 
-			seen["old"] = time.Now().UTC().Add(-1 * time.Hour)
-			seen["new"] = time.Now().UTC()
+			seen["old"] = time.Now().Add(-1 * time.Hour)
+			seen["expired"] = time.Now().Add(-3 * time.Hour)
+			seen["new"] = time.Now()
 
 			Expect(out).To(HaveLen(0))
 
 			advise()
 
-			Expect(out).To(HaveLen(1))
+			Expect(out).To(HaveLen(2))
 
 			msg := <-out
 			Expect(msg.Value).To(Equal("old"))
 			Expect(msg.Event).To(Equal(Timeout))
 
+			msg = <-out
+			Expect(msg.Value).To(Equal("expired"))
+			Expect(msg.Event).To(Equal(Expired))
+
 			_, found := advised["old"]
 			Expect(found).To(BeTrue())
+
+			_, found = advised["expired"]
+			Expect(found).To(BeFalse())
 		})
 	})
 })
