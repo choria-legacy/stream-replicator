@@ -81,18 +81,13 @@ func (c *Connection) connectSTAN(ctx context.Context, cid string, name string, u
 				return nil
 			}
 
-			s := backoff.FiveSec.Duration(try)
-			c.log.Infof("%s NATS Stream client sleeping %s after failed connection attempt %d", name, s, try)
+			c.log.Infof("%s NATS Stream client failed connection attempt %d", name, try)
 
-			timer := time.NewTimer(s)
-
-			select {
-			case <-timer.C:
-				continue
-			case <-ctx.Done():
-				c.log.Errorf("%s initial connection cancelled due to shut down", name)
+			if backoff.FiveSec.InterruptableSleep(ctx, try) != nil {
 				return nil
 			}
+
+			continue
 		}
 
 		break
