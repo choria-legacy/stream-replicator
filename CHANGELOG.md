@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/01/29|      |Release 0.0.6                                                                                            |
+|2018/01/29|58    |Ability to send advisories about tracked nodes when they stop sending metadata                           |
+|2018/01/17|51    |Treat sysconfig file as configuration on el6                                                             |
 |2018/01/17|      |Release 0.0.5                                                                                            |
 |2018/01/16|      |Rework packaging to use new choria packaging framework                                                   |
 |2018/01/03|27    |During condrestart on el6 handle all known pids not just configured ones                                 |

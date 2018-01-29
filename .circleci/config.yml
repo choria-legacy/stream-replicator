@@ -101,7 +101,10 @@ jobs:
       - store_artifacts:
           path: /tmp/workspace
 
-  nightly_packagecloud:
+  nightly_packagecloud: &packagecloud_push
+    environment:
+      - REPO: nightly
+
     docker:
       - image: circleci/ruby
 
@@ -116,6 +119,11 @@ jobs:
           do
             package_cloud push choria/nightly/el/7 ${i}
           done
+
+  release_packagecloud:
+    <<: *pkg_build
+    environment:
+      - REPO: release
 
 workflows:
   version: 2
@@ -149,39 +157,24 @@ workflows:
             tags:
               only: /.+/
 
-      - hold:
-          type: approval
-          requires:
-           - test
+      - build_el6_32bit_rpms:
           filters: &semver_only
             tags:
               only: /^\d+\.\d+\.\d+$/
             branches:
               ignore: /.*/
 
-      - build_el6_32bit_rpms:
-          filters:
-            *semver_only
-          requires:
-           - hold
-
       - build_el6_64bit_rpms:
           filters:
             *semver_only
-          requires:
-           - hold
 
       - build_el7_64bit_rpms:
           filters:
             *semver_only
-          requires:
-           - hold
 
       - build_puppet_module:
           filters:
             *semver_only
-          requires:
-           - hold
 
       - gather_artifacts:
           requires:
@@ -189,5 +182,18 @@ workflows:
              - build_el6_64bit_rpms
              - build_el7_64bit_rpms
              - build_puppet_module
+          filters:
+            *semver_only
+
+      - release_hold:
+          type: approval
+          requires:
+            - gather_artifacts
+          filters:
+            *semver_only
+
+      - release_packagecloud:
+          requires:
+            - release_hold
           filters:
             *semver_only
