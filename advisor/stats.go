@@ -31,5 +31,4 @@ func init() {
 	prometheus.MustRegister(recoverAdvisoryCtr)
 	prometheus.MustRegister(expiredAdvisoryCtr)
 	prometheus.MustRegister(publishErrCtr)
-
 }

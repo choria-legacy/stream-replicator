@@ -31,7 +31,7 @@ type Limiter struct {
 	age       time.Duration
 	topic     string
 	statefile string
-	seen      map[string]time.Time
+	processed map[string]time.Time
 	mu        *sync.Mutex
 	log       *logrus.Entry
 }
@@ -74,7 +74,7 @@ func (m *Limiter) Configure(ctx context.Context, wg *sync.WaitGroup, key string,
 		m.statefile = filepath.Join(config.StateDirectory(), fmt.Sprintf("%s.json", topic))
 	}
 
-	m.seen = make(map[string]time.Time)
+	m.processed = make(map[string]time.Time)
 
 	m.readCache()
 
@@ -113,7 +113,7 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 
 	if process {
 		m.mu.Lock()
-		m.seen[value] = time.Now().UTC()
+		m.processed[value] = time.Now()
 		m.mu.Unlock()
 	}
 
@@ -128,12 +128,12 @@ func (m *Limiter) shouldProcess(value string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	t, found := m.seen[value]
+	t, found := m.processed[value]
 	if !found {
 		return true
 	}
 
-	oldest := time.Now().UTC().Add(-1 * m.age)
+	oldest := time.Now().Add(0 - m.age)
 
 	if t.Before(oldest) {
 		return true
@@ -153,7 +153,7 @@ func (m *Limiter) readCache() error {
 		return nil
 	}
 
-	if len(m.seen) > 0 {
+	if len(m.processed) > 0 {
 		return fmt.Errorf("last seen cache is not empty")
 	}
 
@@ -162,23 +162,23 @@ func (m *Limiter) readCache() error {
 		return err
 	}
 
-	err = json.Unmarshal(d, &m.seen)
+	err = json.Unmarshal(d, &m.processed)
 	if err != nil {
 		return err
 	}
 
-	killtime := time.Now().UTC().Add((-1 * m.age) - (10 * time.Minute))
+	killtime := time.Now().Add(0 - 3 * m.age)
 
-	for i, t := range m.seen {
+	for i, t := range m.processed {
 		if t.Before(killtime) {
-			delete(m.seen, i)
+			delete(m.processed, i)
 			continue
 		}
 
 		advisor.RecordTime(i, t)
 	}
 
-	m.log.Infof("Read %d bytes of last-seen data from cache file %s.  After scrubbing old entries the last-seen data has %d entries.", len(d), m.statefile, len(m.seen))
+	m.log.Infof("Read %d bytes of last-processed data from cache file %s.  After scrubbing old entries the last-processed data has %d entries.", len(d), m.statefile, len(m.processed))
 
 	return nil
 }
@@ -187,13 +187,13 @@ func (m *Limiter) writeCache() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if len(m.seen) == 0 {
+	if len(m.processed) == 0 {
 		return nil
 	}
 
-	content, err := json.Marshal(m.seen)
+	content, err := json.Marshal(m.processed)
 	if err != nil {
-		m.log.Errorf("Could not JSON encode last seen data: %s", err)
+		m.log.Errorf("Could not JSON encode last processed data: %s", err)
 		return err
 	}
 
@@ -268,7 +268,7 @@ func (m *Limiter) promUpdater(ctx context.Context, wg *sync.WaitGroup) {
 		select {
 		case <-ticker.C:
 			m.mu.Lock()
-			seenGauge.WithLabelValues(m.key, m.topic).Set(float64(len(m.seen)))
+			seenGauge.WithLabelValues(m.key, m.topic).Set(float64(len(m.processed)))
 			m.mu.Unlock()
 
 		case <-ctx.Done():
@@ -281,12 +281,11 @@ func (m *Limiter) scrub() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	killtime := time.Now().UTC().Add((-1 * m.age) - (1 * time.Minute))
+	killtime := time.Now().Add(0 - 3 * m.age)
 
-	for i, t := range m.seen {
+	for i, t := range m.processed {
 		if t.Before(killtime) {
-			delete(m.seen, i)
-			advisor.Expire(i)
+			delete(m.processed, i)
 		}
 	}
 }

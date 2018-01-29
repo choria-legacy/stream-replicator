@@ -54,7 +54,7 @@ var _ = Describe("Limiter/Memory", func() {
 
 			Expect(m.key).To(Equal("k"))
 			Expect(m.age).To(Equal(time.Duration(1 * time.Minute)))
-			Expect(m.seen).To(BeEmpty())
+			Expect(m.processed).To(BeEmpty())
 		})
 	})
 
@@ -72,15 +72,15 @@ var _ = Describe("Limiter/Memory", func() {
 		})
 
 		It("Should be false when recently been seen", func() {
-			m.seen["test"] = time.Now()
+			m.processed["test"] = time.Now()
 			Expect(m.shouldProcess("test")).To(BeFalse())
 		})
 
 		It("Should correctly detect when a update is needed based on age", func() {
-			m.seen["test"] = time.Now().Add(-59 * time.Second)
+			m.processed["test"] = time.Now().Add(-59 * time.Second)
 			Expect(m.shouldProcess("test")).To(BeFalse())
 
-			m.seen["test"] = time.Now().Add(-61 * time.Second)
+			m.processed["test"] = time.Now().Add(-121 * time.Second)
 			Expect(m.shouldProcess("test")).To(BeTrue())
 		})
 	})
@@ -89,11 +89,12 @@ var _ = Describe("Limiter/Memory", func() {
 		It("Should delete only old entries", func() {
 			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
 
-			m.seen["new"] = time.Now()
-			m.seen["old"] = time.Now().Add((-61 * time.Second) - (10 * time.Minute))
+			m.processed["new"] = time.Now()
+			m.processed["old"] = time.Now().Add(-3 * time.Minute)
+
 			m.scrub()
-			Expect(m.seen).ToNot(HaveKey("old"))
-			Expect(m.seen).To(HaveKey("new"))
+			Expect(m.processed).ToNot(HaveKey("old"))
+			Expect(m.processed).To(HaveKey("new"))
 		})
 	})
 
@@ -128,7 +129,7 @@ var _ = Describe("Limiter/Memory", func() {
 		})
 
 		It("Should write the cache", func() {
-			m.seen["test"] = time.Now()
+			m.processed["test"] = time.Now()
 			err := m.writeCache()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(m.statefile).To(BeAnExistingFile())
@@ -138,7 +139,7 @@ var _ = Describe("Limiter/Memory", func() {
 			err = json.Unmarshal(d, &s)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(s["test"].Unix()).To(Equal(m.seen["test"].Unix()))
+			Expect(s["test"].Unix()).To(Equal(m.processed["test"].Unix()))
 		})
 	})
 
@@ -149,15 +150,15 @@ var _ = Describe("Limiter/Memory", func() {
 
 			m.Configure(ctx, wg, "k", time.Duration(1*time.Minute), "test")
 
-			m.seen["test"] = time.Now()
+			m.processed["test"] = time.Now()
 			m.writeCache()
 			Expect(m.statefile).To(BeAnExistingFile())
 
-			u := m.seen["test"].Unix()
-			m.seen = make(map[string]time.Time)
+			u := m.processed["test"].Unix()
+			m.processed = make(map[string]time.Time)
 			m.readCache()
-			Expect(m.seen).ToNot(BeEmpty())
-			Expect(u).To(Equal(m.seen["test"].Unix()))
+			Expect(m.processed).ToNot(BeEmpty())
+			Expect(u).To(Equal(m.processed["test"].Unix()))
 		})
 	})
 })

@@ -51,6 +51,7 @@ var advised map[string]time.Time
 var mu = &sync.Mutex{}
 var configured = false
 var conf config.TopicConf
+var interval time.Duration
 var age time.Duration
 var err error
 var log *logrus.Entry
@@ -81,6 +82,11 @@ func Configure(tls bool, c config.TopicConf) error {
 	age, err = time.ParseDuration(c.Advisory.Age)
 	if err != nil {
 		return fmt.Errorf("age cannot be parsed as a duration: %s", err)
+	}
+
+	interval, err = time.ParseDuration(c.MinAge)
+	if err != nil {
+		return fmt.Errorf("topic min age cannot be parsed as a duration: %s", err)
 	}
 
 	reset()
@@ -125,6 +131,12 @@ func RecordTime(id string, seent time.Time) {
 		return
 	}
 
+	// the limiters will have thresholds and grace periods etc,
+	// we have none so if they send us old stuff just drop it
+	if seent.Before(oldest()) {
+		return
+	}
+
 	// we previously advised about this node, so
 	// its back now lets advise about it and delete
 	// the advisory record
@@ -137,30 +149,9 @@ func RecordTime(id string, seent time.Time) {
 		delete(advised, id)
 	}
 
-	log.Debugf("Recorded %s as seen at %v", id, seent.UTC())
+	log.Debugf("Recorded %s as seen at %v", id, seent)
 
-	seen[id] = seent.UTC()
-}
-
-// Expire removes all history about a sender from the advisor
-// as it's supposed to be called when a node has not been seen
-// for a long time this will trigger a advisory about this
-// sender id
-func Expire(id string) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if !configured {
-		return
-	}
-
-	log.Infof("sending advisory: %s: expiring", id)
-	expiredAdvisoryCtr.WithLabelValues(name).Inc()
-
-	out <- newAdvisory(id, Expired)
-
-	delete(seen, id)
-	delete(advised, id)
+	seen[id] = seent
 }
 
 // once a minute goes runs the adviser
@@ -196,22 +187,35 @@ func advise() {
 		return
 	}
 
-	cutoff := time.Now().UTC().Add(1 - age)
+	timeout := time.Now().Add(0 - age)
+	expire := time.Now().Add(0 - interval)
 
-	log.Debug("Looking for nodes last seen earlier than %v", cutoff)
+	log.Debug("Looking for nodes last seen earlier than %v", timeout)
 
 	for i, t := range seen {
-		if t.Before(cutoff) {
+		if t.Before(expire) {
+			log.Infof("sending advisory: %s: expiring", i)
+			expiredAdvisoryCtr.WithLabelValues(name).Inc()
+
+			out <- newAdvisory(i, Expired)
+
+			delete(seen, i)
+			delete(advised, i)
+
+			continue
+		}
+
+		if t.Before(timeout) {
 			_, found := advised[i]
 
 			if !found {
 				advisory := newAdvisory(i, Timeout)
 
-				log.Infof("sending advisory: %s: older than %v, last seen %d seconds ago", i, cutoff, advisory.Age)
+				log.Infof("sending advisory: %s: older than %v, last seen %d seconds ago", i, timeout, advisory.Age)
 				timeoutAdvisoryCtr.WithLabelValues(name).Inc()
 
 				out <- advisory
-				advised[i] = time.Now().UTC()
+				advised[i] = time.Now()
 			}
 		}
 	}
@@ -220,7 +224,7 @@ func advise() {
 func newAdvisory(id string, event EventType) AgeAdvisoryV1 {
 	return AgeAdvisoryV1{
 		Timestamp:  time.Now().UTC().Unix(),
-		Age:        time.Now().UTC().Unix() - seen[id].Unix(),
+		Age:        time.Now().Unix() - seen[id].Unix(),
 		Inspect:    conf.Inspect,
 		Replicator: conf.Name,
 		Seen:       seen[id].Unix(),
@@ -288,4 +292,8 @@ func reset() {
 	seen = make(map[string]time.Time)
 	advised = make(map[string]time.Time)
 	configured = false
+}
+
+func oldest() time.Time {
+	return time.Now().Add(0 - age)
 }
