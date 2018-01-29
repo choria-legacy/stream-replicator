@@ -178,7 +178,7 @@ Now advisories will be sent to the NATS Streaming target `sr.advisories.cmdb`:
  * The first time a node is seen to not have responded in 30 minutes.  A `timeout` event is sent.
  * If the node is seen again before max age exceeds. A `recover` event is sent.
  * When the node exceeds the max age for the topic - 1 hour here. An `expire` event is sent.
- 
+
 
 Once a node is past max age we forget it ever existed - but when it comes back it's data will immediately be replicated so you can do recovery logic that way for really long outages.
 
@@ -196,6 +196,8 @@ A sample advisory can be seen below:
     "event":"timeout"
 }
 ```
+
+**NOTE**: Advisories that fail to send are retried for 10 times, but after that they are discarded
 
 ## About client and queue group names
 
@@ -245,9 +247,10 @@ In all cases the `name` label is the configured name or generated one as describ
 |`stream_replicator_limiter_memory_skipped`|Number of times the memory limiter determined a message should be skipped|
 |`stream_replicator_limiter_memory_passed`|Number of times the memory limiter allowed a message to be processed|
 |`stream_replicator_limiter_memory_errors`|Number of times the processor function returned an error|
-|`stream_replicator_advisories_down`|Number of advisories that were sent when nodes went down|
-|`stream_replicator_advisories_up`|Number of advisories that were sent when nodes recovered before expiry deadline|
-|`stream_replicator_advisories_expired`|Number of advisories sent when nodes expired before the deadline|
+|`stream_replicator_advisories_timeout`|Number of advisories that were sent when nodes went down|
+|`stream_replicator_advisories_recover`|Number of advisories that were sent when nodes recovered before expiry deadline|
+|`stream_replicator_advisories_expire`|Number of advisories sent when nodes expired before the deadline|
+|`stream_replicator_advisories_errors`|Number of times publishing advisories failed|
 
 A sample Grafana dashboard can be found in [dashboard.json](dashboard.json), it will make a graph along these lines:
 

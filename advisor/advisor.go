@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
 	"github.com/nats-io/go-nats-streaming"
@@ -130,7 +131,7 @@ func RecordTime(id string, seent time.Time) {
 	t, ok := advised[id]
 	if ok {
 		log.Infof("sending advisory: %s: returned after previous advisory at %v", id, t)
-		upAdvisoryCtr.WithLabelValues(name).Inc()
+		recoverAdvisoryCtr.WithLabelValues(name).Inc()
 
 		out <- newAdvisory(id, Recovery)
 		delete(advised, id)
@@ -207,7 +208,7 @@ func advise() {
 				advisory := newAdvisory(i, Timeout)
 
 				log.Infof("sending advisory: %s: older than %v, last seen %d seconds ago", i, cutoff, advisory.Age)
-				downAdvisoryCtr.WithLabelValues(name).Inc()
+				timeoutAdvisoryCtr.WithLabelValues(name).Inc()
 
 				out <- advisory
 				advised[i] = time.Now().UTC()
@@ -252,10 +253,28 @@ func publisher(ctx context.Context, wg *sync.WaitGroup) {
 			d, err := json.Marshal(msg)
 			if err != nil {
 				log.Errorf("Cannot publish advisory: %s", err)
+				publishErrCtr.WithLabelValues(name).Inc()
 				continue
 			}
 
-			conn.Publish(conf.Advisory.Target, d)
+			for i := 0; i < 10; i++ {
+				err := conn.Publish(conf.Advisory.Target, d)
+				if err != nil {
+					log.Warnf("Failed to publish %s advisory for %s: %s", msg.Event, msg.Value, err)
+					publishErrCtr.WithLabelValues(name).Inc()
+
+					if i < 9 {
+						if backoff.FiveSec.InterruptableSleep(ctx, i) != nil {
+							break
+						}
+					}
+
+					continue
+				}
+
+				break
+			}
+
 		case <-ctx.Done():
 			log.Infof("Advisor shutting down")
 			conn.Close()
