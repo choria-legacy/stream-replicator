@@ -117,7 +117,7 @@ jobs:
       - run: |
           for d in 6 7
           do
-            for i in $(find /tmp/workspace -name \*.el${d}.\*.rpm)
+            for i in $(find /tmp/workspace -name \*.el${d}.\*.rpm | grep -v src.rpm)
             do
               package_cloud push choria/${REPO}/el/${d} ${i}
             done
