@@ -1,5 +1,6 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/01/29|65    |Correctly list advisory target modes in the puppet module as `source` and `target`                       |
 |2018/01/29|      |Release 0.0.6                                                                                            |
 |2018/01/29|58    |Ability to send advisories about tracked nodes when they stop sending metadata                           |
 |2018/01/17|51    |Treat sysconfig file as configuration on el6                                                             |
