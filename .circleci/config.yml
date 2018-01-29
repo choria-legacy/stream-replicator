@@ -158,6 +158,8 @@ workflows:
               only: /.+/
 
       - build_el6_32bit_rpms:
+          requires:
+            - test
           filters: &semver_only
             tags:
               only: /^\d+\.\d+\.\d+$/
@@ -165,14 +167,20 @@ workflows:
               ignore: /.*/
 
       - build_el6_64bit_rpms:
+          requires:
+            - test
           filters:
             *semver_only
 
       - build_el7_64bit_rpms:
+          requires:
+            - test
           filters:
             *semver_only
 
       - build_puppet_module:
+          requires:
+            - test
           filters:
             *semver_only
 
