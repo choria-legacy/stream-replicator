@@ -125,7 +125,7 @@ jobs:
 
 
   release_packagecloud:
-    <<: *pkg_build
+    <<: *packagecloud_push
     environment:
       - REPO: release
 
