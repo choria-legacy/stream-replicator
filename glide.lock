@@ -1,5 +1,5 @@
-hash: 6bd9d6b6ddb940caaac492c5ec45696e95c0af9562a72c9c0bb8db79aff79e3c
-updated: 2018-01-27T13:29:28.576934+01:00
+hash: 8a8500bfb1350bc3e20984a8529e9b69f0a092d14b70b77329d940c8941d586a
+updated: 2018-01-30T15:02:45.735731+01:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -11,6 +11,8 @@ imports:
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
+- name: github.com/fatih/color
+  version: 570b54cabe6b8eb0bc2dfce68d964677d63b5260
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-sql-driver/mysql
@@ -32,6 +34,12 @@ imports:
   repo: https://github.com/lib/pq
   subpackages:
   - oid
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+  repo: https://github.com/mattn/go-isatty
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
@@ -54,7 +62,7 @@ imports:
   subpackages:
   - pb
 - name: github.com/nats-io/nats-streaming-server
-  version: e2d5e2dc702d5f5a2d4ae1b1841d87a42b94cc00
+  version: 33414c6f2179201f7fda8743ba89d07184e3fa77
   subpackages:
   - logger
   - server
@@ -95,7 +103,7 @@ imports:
   - blowfish
   - ssh/terminal
 - name: golang.org/x/sys
-  version: f7928cfef4d09d1b080aa2b6fd3ca9ba1567c733
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
   subpackages:
   - unix
   - windows
