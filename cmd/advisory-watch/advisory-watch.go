@@ -53,7 +53,7 @@ func connect() {
 
 func parseCLI() {
 	kingpin.Flag("config", "Configuration file").ExistingFileVar(&cfile)
-	kingpin.Flag("topic", "Topic to observe advisories for").Required().StringVar(&topic)
+	kingpin.Flag("topic", "Configuration topic to observe advisories for").Required().StringVar(&topic)
 	kingpin.Flag("name", "Client name for the connection").StringVar(&name)
 	kingpin.Flag("debug", "Enables debug logging").BoolVar(&debug)
 	kingpin.Flag("all", "Retrieve all advsirories").BoolVar(&all)
@@ -146,13 +146,7 @@ func viewf(msg *stan.Msg) {
 	}
 }
 
-func main() {
-	parseCLI()
-
-	interruptHandler()
-
-	connect()
-
+func subscribe() {
 	opts := []stan.SubscriptionOption{}
 
 	if all && int64(since) > 0 {
@@ -170,6 +164,13 @@ func main() {
 	log.Infof("Subscribing to %s", conf.Advisory.Target)
 
 	conn.Subscribe(conf.Advisory.Target, viewf, opts...)
+}
+
+func main() {
+	parseCLI()
+	interruptHandler()
+	connect()
+	subscribe()
 
 	select {
 	case <-ctx.Done():

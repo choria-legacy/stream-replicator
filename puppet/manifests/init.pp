@@ -5,13 +5,16 @@
 # This module does not install the Choria YUM repository, it's configured as:
 #
 # ```
-# [choria]
-# name=Choria Orchestrator - $architecture
-# baseurl=https://dl.bintray.com/choria/el-yum/el$releasever/$basearch
+# [choria_release]
+# name=choria_release
+# baseurl=https://packagecloud.io/choria/release/el/$releasever/$basearch
+# repo_gpgcheck=1
 # gpgcheck=0
-# repo_gpgcheck=0
 # enabled=1
-# protect=1
+# gpgkey=https://packagecloud.io/choria/release/gpgkey
+# sslverify=1
+# sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+# metadata_expire=300
 # ```
 #
 # Each topic you wish to manage gets one service or process.  On `systemd` type
