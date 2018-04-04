@@ -15,4 +15,7 @@ class stream_replicator::defaults_service {
         ensure => $_sensure,
         enable => $_senable
     }
+
+    Class["stream_replicator::install"] ~> Class[$name]
+    Class["stream_replicator::config"] ~> Class[$name]
 }

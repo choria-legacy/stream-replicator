@@ -20,4 +20,7 @@ class stream_replicator::systemd_service {
             enable => false
         }
     }
+
+    Class["stream_replicator::install"] ~> Class[$name]
+    Class["stream_replicator::config"] ~> Class[$name]
 }
