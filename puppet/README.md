@@ -8,16 +8,19 @@ The Choria NATS Stream Replicator is a tool to replicate a topic from one NATS S
 
 The module installs, configures and manages the associated services.
 
-In order to install the package you have to add the Choria YUM repository to your system, in future there will be a `choria` module to do this for you.
+In order to install the package you have to add the Choria YUM repository to your system, the `choria/choria` module can do this, you can also arrange for it to be installed on your own as below:
 
 ```ini
-[choria]
-name=Choria Orchestrator - $architecture
-baseurl=https://dl.bintray.com/choria/el-yum/el$releasever/$basearch
+[choria_release]
+name=choria_release
+baseurl=https://packagecloud.io/choria/release/el/$releasever/$basearch
+repo_gpgcheck=1
 gpgcheck=0
-repo_gpgcheck=0
 enabled=1
-protect=1
+gpgkey=https://packagecloud.io/choria/release/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
 ```
 
 ## Usage

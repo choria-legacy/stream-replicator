@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/04/04|      |Release 0.0.8                                                                                            |
+|2018/04/04|71    |Ensure the service restarts correctly when managed by Puppet                                             |
 |2018/01/29|      |Release 0.0.7                                                                                            |
 |2018/01/29|65    |Correctly list advisory target modes in the puppet module as `source` and `target`                       |
 |2018/01/29|      |Release 0.0.6                                                                                            |
