@@ -61,7 +61,7 @@ func Run() {
 
 	writePID(pidfile)
 
-	logrus.Infof("Starting Choria Stream Replicator version %s for topic %s with configuration file %s", version, cfile, topic)
+	logrus.Infof("Starting Choria Stream Replicator version %s for topic %s with configuration file %s", version, topic, cfile)
 
 	startReplicator(ctx, wg, done, topicconf, topic)
 
