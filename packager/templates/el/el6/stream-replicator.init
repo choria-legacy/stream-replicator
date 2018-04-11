@@ -51,7 +51,7 @@ start() {
         pidfile="${piddir}/${c}.pid"
         rm -f ${pidfile}
 
-        daemon --pidfile=${pidfile} " { nohup ${exec} --config ${conffile} --topic ${c} --pid ${pidfile} > ${logfile} 2>&1 & } ; sleep 0.5 ; [ -f ${pidfile} ]"
+        daemon --pidfile=${pidfile} " { nohup ${exec} --config ${conffile} --topic ${c} --pid ${pidfile} >> ${logfile} 2>&1 & } ; sleep 0.5 ; [ -f ${pidfile} ]"
 
         if [ $? = 0 ] && [ -f ${pidfile} ]; then
             echo "${c}"
