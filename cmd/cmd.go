@@ -60,6 +60,9 @@ func Run() {
 	go interruptHandler()
 
 	writePID(pidfile)
+
+	logrus.Infof("Starting Choria Stream Replicator version %s for topic %s with configuration file %s", version, cfile, topic)
+
 	startReplicator(ctx, wg, done, topicconf, topic)
 
 	wg.Wait()
