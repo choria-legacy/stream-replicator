@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/04/11|      |Release 0.1.0                                                                                            |
+|2018/04/11|76    |Do not rotate empty log files                                                                            |
+|2018/04/11|75    |Announce version, config and topic at startup                                                            |
 |2018/04/04|      |Release 0.0.8                                                                                            |
 |2018/04/04|71    |Ensure the service restarts correctly when managed by Puppet                                             |
 |2018/01/29|      |Release 0.0.7                                                                                            |
