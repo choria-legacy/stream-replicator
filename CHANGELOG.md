@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/04/11|      |Release 0.1.1                                                                                            |
+|2018/04/11|82    |Do not zero the logfile on startup                                                                       |
+|2018/04/11|80    |Fix startup announce message ordering                                                                    |
 |2018/04/11|      |Release 0.1.0                                                                                            |
 |2018/04/11|76    |Do not rotate empty log files                                                                            |
 |2018/04/11|75    |Announce version, config and topic at startup                                                            |
