@@ -155,16 +155,27 @@ topics:
         age: 1h
 ```
 
+Additionally you might want to flag that your data has changed - perhaps it's data like node metadata that changes very infrequently but when it does you'd like to replicate it unconditionally - this can be achieved by adding a boolean flag to your data and configuring the `update_flag` item:
+
+```yaml
+state_dir: /var/cache/stream-replicator
+
+topics:
+    dc1_cmdb:
+        # as above
+        inspect: sender
+        update_flag: updated
+        age: 1h
+```
+
+Here it will look at the `updated` key in your data and if it's true replicate the data regardless of time stamps.  It will mark the data as replicated though and then fall back into its standard interval behavior from that point onward.
+
 A companion feature to this one lets you send advisories about when machines stop responding, since with this enabled internally every sender is tracked we can use this to also identify nodes that did not send data in a given interval and then send alerts.
 
 ```yaml
 topics:
     dc1_cmdb:
-        topic: acme.cmdb
-        source_url: nats://source1:4222,nats://source2:4222
-        source_cluster_id: dc1
-        target_url: nats://target1:4222,nats://target2:4222
-        target_cluster_id: dc2
+        # as above
         inspect: sender
         age: 1h
         advisory:
