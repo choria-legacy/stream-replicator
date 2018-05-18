@@ -21,19 +21,20 @@ type replications struct {
 
 // TopicConf is the configuration for a specific topic
 type TopicConf struct {
-	Topic       string `json:"topic"`
-	SourceURL   string `json:"source_url"`
-	SourceID    string `json:"source_cluster_id"`
-	TargetURL   string `json:"target_url"`
-	TargetID    string `json:"target_cluster_id"`
-	Workers     int
-	Queued      bool
-	QueueGroup  string `json:"queue_group"`
-	Inspect     string
-	MinAge      string `json:"age"`
-	Name        string
-	MonitorPort int `json:"monitor"`
-	Advisory    *AdvisoryConf
+	Topic       string        `json:"topic"`
+	SourceURL   string        `json:"source_url"`
+	SourceID    string        `json:"source_cluster_id"`
+	TargetURL   string        `json:"target_url"`
+	TargetID    string        `json:"target_cluster_id"`
+	Workers     int           `json:"workers"`
+	Queued      bool          `json:"queued"`
+	QueueGroup  string        `json:"queue_group"`
+	Inspect     string        `json:"inspect"`
+	UpdateFlag  string        `json:"update_flag"`
+	MinAge      string        `json:"age"`
+	Name        string        `json:"name"`
+	MonitorPort int           `json:"monitor"`
+	Advisory    *AdvisoryConf `json:"advisory"`
 }
 
 // TLSConf describes the TLS config for a NATS connection

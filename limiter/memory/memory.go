@@ -27,13 +27,14 @@ import (
 // it during startup which helps on very large sender counts to
 // drastically reduce the restart costs of this kind of cache
 type Limiter struct {
-	key       string
-	age       time.Duration
-	topic     string
-	statefile string
-	processed map[string]time.Time
-	mu        *sync.Mutex
-	log       *logrus.Entry
+	key        string
+	updateFlag string
+	age        time.Duration
+	topic      string
+	statefile  string
+	processed  map[string]time.Time
+	mu         *sync.Mutex
+	log        *logrus.Entry
 }
 
 var seenGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -63,12 +64,13 @@ func init() {
 	prometheus.MustRegister(errCtr)
 }
 
-func (m *Limiter) Configure(ctx context.Context, wg *sync.WaitGroup, key string, age time.Duration, topic string) error {
+func (m *Limiter) Configure(ctx context.Context, wg *sync.WaitGroup, inspectKey string, updateFlagKey string, age time.Duration, topic string) error {
 	m.mu = &sync.Mutex{}
-	m.key = key
+	m.updateFlag = updateFlagKey
+	m.key = inspectKey
 	m.age = age
 	m.topic = topic
-	m.log = logrus.WithFields(logrus.Fields{"key": key, "age": age, "topic": topic})
+	m.log = logrus.WithFields(logrus.Fields{"key": inspectKey, "age": age, "topic": topic})
 
 	if config.StateDirectory() != "" {
 		m.statefile = filepath.Join(config.StateDirectory(), fmt.Sprintf("%s.json", topic))
@@ -94,8 +96,26 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 		return f(msg, true)
 	}
 
-	value := gjson.GetBytes(msg.Data, m.key).String()
-	process := m.shouldProcess(value)
+	var process bool
+	var value string
+
+	res := gjson.GetBytes(msg.Data, m.updateFlag)
+	if res.Exists() {
+		process = res.Bool()
+	}
+
+	// even though we know we will update here should the updateFlag
+	// be true we still need to figure out this value for advisory tracking
+	res = gjson.GetBytes(msg.Data, m.key)
+	if res.Exists() {
+		value = res.String()
+	}
+
+	// but we do know the update flag is forcing the update so we should not
+	// again decide based on the value of the key
+	if !process {
+		process = m.shouldProcess(value)
+	}
 
 	if process {
 		passedCtr.WithLabelValues(m.key, m.topic).Inc()
@@ -103,7 +123,12 @@ func (m *Limiter) ProcessAndRecord(msg *stan.Msg, f func(msg *stan.Msg, process 
 		skippedCtr.WithLabelValues(m.key, m.topic).Inc()
 	}
 
-	advisor.Record(value)
+	// we dont want to record advisories for data without the key
+	// this might combine many different incorrect data items into
+	// one bucket
+	if value != "" {
+		advisor.Record(value)
+	}
 
 	err := f(msg, process)
 	if err != nil {
@@ -167,7 +192,7 @@ func (m *Limiter) readCache() error {
 		return err
 	}
 
-	killtime := time.Now().Add(0 - 3 * m.age)
+	killtime := time.Now().Add(0 - 3*m.age)
 
 	for i, t := range m.processed {
 		if t.Before(killtime) {
@@ -281,7 +306,7 @@ func (m *Limiter) scrub() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	killtime := time.Now().Add(0 - 3 * m.age)
+	killtime := time.Now().Add(0 - 3*m.age)
 
 	for i, t := range m.processed {
 		if t.Before(killtime) {
