@@ -20,14 +20,14 @@ func TestFederation(t *testing.T) {
 
 var _ = Describe("Connector", func() {
 	var log *logrus.Entry
-	var conf config.TopicConf
+	var conf *config.TopicConf
 
 	BeforeSuite(func() {
 		logrus.SetOutput(os.Stdout)
 		log = logrus.WithField("test", true)
 		logrus.SetLevel(logrus.FatalLevel)
 
-		conf = config.TopicConf{
+		conf = &config.TopicConf{
 			SourceID:  "left",
 			SourceURL: "nats://localhost:34222",
 			TargetID:  "right",

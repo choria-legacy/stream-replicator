@@ -25,7 +25,7 @@ var _ = Describe("Advisor", func() {
 		ctx      context.Context
 		wg       *sync.WaitGroup
 		log      *logrus.Entry
-		goodconf config.TopicConf
+		goodconf *config.TopicConf
 	)
 
 	BeforeEach(func() {
@@ -36,7 +36,7 @@ var _ = Describe("Advisor", func() {
 		logrus.SetLevel(logrus.FatalLevel)
 		reset()
 
-		goodconf = config.TopicConf{
+		goodconf = &config.TopicConf{
 			SourceID:  "left",
 			SourceURL: "nats://localhost:34222",
 			TargetID:  "right",
@@ -95,12 +95,12 @@ var _ = Describe("Advisor", func() {
 
 	var _ = Describe("Configure", func() {
 		It("Should be a noop when no advisory is configured", func() {
-			Configure(false, config.TopicConf{})
+			Configure(false, &config.TopicConf{})
 			Expect(configured).To(BeFalse())
 		})
 
 		It("Should handle invalid times", func() {
-			c := config.TopicConf{
+			c := &config.TopicConf{
 				Advisory: &config.AdvisoryConf{
 					Age: "x",
 				},

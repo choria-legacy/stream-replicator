@@ -4,7 +4,8 @@ debug: true
 verbose: false
 
 tls:
-  scheme: manual
+  identity: test.example.net
+  scheme: file
   ssl_dir: /tmp/tls
   ca: ca.pem
   cert: cert.pem

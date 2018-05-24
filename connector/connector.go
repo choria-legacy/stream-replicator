@@ -6,7 +6,6 @@ import (
 
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
-	"github.com/choria-io/stream-replicator/ssl"
 	nats "github.com/nats-io/go-nats"
 	"github.com/nats-io/go-nats-streaming"
 	"github.com/sirupsen/logrus"
@@ -18,7 +17,7 @@ type Connection struct {
 	log  *logrus.Entry
 	conn stan.Conn
 	name string
-	cfg  config.TopicConf
+	cfg  *config.TopicConf
 	id   string
 	tls  bool
 }
@@ -33,7 +32,7 @@ const Source = Direction(0)
 const Target = Direction(1)
 
 // New creates a new connector
-func New(name string, tls bool, dir Direction, cfg config.TopicConf, logger *logrus.Entry) *Connection {
+func New(name string, tls bool, dir Direction, cfg *config.TopicConf, logger *logrus.Entry) *Connection {
 	c := Connection{
 		url:  cfg.TargetURL,
 		log:  logger,
@@ -107,7 +106,8 @@ func (c *Connection) connectNATS(ctx context.Context, name string, urls string) 
 	}
 
 	if c.tls {
-		tlsc, err := ssl.TLSConfig()
+		c.log.Debugf("Configuring TLS on NATS connection to %s", urls)
+		tlsc, err := c.cfg.SecurityProvider.TLSConfig()
 		if err != nil {
 			c.log.Errorf("Failed to configure TLS: %s", err)
 			return nil
@@ -124,7 +124,7 @@ func (c *Connection) connectNATS(ctx context.Context, name string, urls string) 
 
 		natsc, err = nats.Connect(urls, options...)
 		if err != nil {
-			c.log.Warnf("%s initial connection to the NATS broker cluster failed: %s", name, err)
+			c.log.Warnf("%s initial connection to the NATS broker cluster (%s) failed: %s", name, urls, err)
 
 			if ctx.Err() != nil {
 				c.log.Errorf("%s initial connection cancelled due to shut down", name)

@@ -27,6 +27,11 @@ import:
   - server
 - package: github.com/fatih/color
   version: ^1.5.0
+- package: github.com/choria-io/go-choria
+  subpackages:
+  - security
+- package: github.com/choria-io/go-security
+  version: ^0.0.1
 testImport:
 - package: github.com/onsi/ginkgo
   version: ^1

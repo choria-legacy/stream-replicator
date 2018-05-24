@@ -40,6 +40,7 @@ class stream_replicator(
     Stream_replicator::Topics $topics = {},
     Array[String] $managed_topics = [],
     Array[String] $disabled_topics = [],
+    Optional[Variant[Stream_replicator::FileSSL, Stream_replicator::PuppetSSL]] $tls = undef,
     Stdlib::Absolutepath $config_file = "/etc/stream-replicator/sr.yaml",
     Stdlib::Absolutepath $state_dir = "/var/lib/stream-replicator",
     Stdlib::Absolutepath $defaults_file = "/etc/sysconfig/stream-replicator",
@@ -53,11 +54,11 @@ class stream_replicator(
     String $version = "present"
 ) {
     if $ensure == "present" {
-        class{"stream_replicator::install": } ->
-        class{"stream_replicator::config": } ~>
-        class{"stream_replicator::service": }
-    } else {
-        class{"stream_replicator::service": } ->
         class{"stream_replicator::install": }
+        -> class{"stream_replicator::config": }
+        ~> class{"stream_replicator::service": }
+    } else {
+        class{"stream_replicator::service": }
+        -> class{"stream_replicator::install": }
     }
 }

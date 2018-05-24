@@ -17,7 +17,7 @@ import (
 
 // Copier is a single instance of a topic replicator
 type Copier struct {
-	config config.TopicConf
+	config *config.TopicConf
 	tls    bool
 	Log    *logrus.Entry
 	ctx    context.Context
@@ -25,12 +25,12 @@ type Copier struct {
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup(name string, topic config.TopicConf) error {
+func (c *Copier) Setup(name string, topic *config.TopicConf) error {
 	c.config = topic
 	c.tls = config.TLS()
 
 	if c.config.Topic == "" {
-		return fmt.Errorf("A topic is required")
+		return fmt.Errorf("a topic is required")
 	}
 
 	if c.config.SourceURL == "" {
@@ -38,15 +38,15 @@ func (c *Copier) Setup(name string, topic config.TopicConf) error {
 	}
 
 	if c.config.SourceID == "" {
-		return fmt.Errorf("A from cluster id is required")
+		return fmt.Errorf("a from cluster id is required")
 	}
 
 	if c.config.TargetURL == "" {
-		return fmt.Errorf("A destination URL is required")
+		return fmt.Errorf("a destination URL is required")
 	}
 
 	if c.config.TargetID == "" {
-		return fmt.Errorf("A target cluster id is required")
+		return fmt.Errorf("a target cluster id is required")
 	}
 
 	if c.config.Workers == 0 {

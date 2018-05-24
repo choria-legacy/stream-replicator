@@ -50,7 +50,7 @@ var advised map[string]time.Time
 
 var mu = &sync.Mutex{}
 var configured = false
-var conf config.TopicConf
+var conf *config.TopicConf
 var interval time.Duration
 var age time.Duration
 var err error
@@ -64,7 +64,7 @@ func init() {
 }
 
 // Configure configures the advisor
-func Configure(tls bool, c config.TopicConf) error {
+func Configure(tls bool, c *config.TopicConf) error {
 	mu.Lock()
 	defer mu.Unlock()
 
