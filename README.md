@@ -22,7 +22,6 @@ This is a pretty new project that is being used in production, however as it is 
 Feature wise I have a few TODOs:
 
   * Add a control plane by embedding a Choria server
-  * Make the current undocumented SSL configuration be topic specific, but with the ability to have a global configuration - and then document it
 
 Initial packages for el6 and 7 64bit systems are now on the Choria YUM repository,
 see below.
@@ -59,6 +58,64 @@ topics:
 ```
 
 You would then run the replicator with `stream-replicator --config sr.yaml --topic cmdb`
+
+## TLS to the NATS infrastructure
+
+SSL is supported on the network connections, 2 modes of configuration exist - Puppet compatible or full manual config.
+
+The examples below will show a top level `tls` key, you can also put it at a individual topic level if needed.
+
+### Puppet Compatible
+
+If you are a Puppet user you might want to re-use the Puppet CA, a sample SSL configuration can be seen here:
+
+```yaml
+tls:
+  identity: foo.replicator
+  scheme: puppet
+  ssl_dir: /etc/stream-replicator/ssl
+
+topics:
+    cmdb:
+        topic: acme.cmdb
+        source_url: nats://source1:4222,nats://source2:4222
+        source_cluster_id: dc1
+        target_url: nats://target1:4222,nats://target2:4222
+        target_cluster_id: dc2
+```
+
+Here it will attempt to use a Puppet standard layout for the various certificates.
+
+You can arrange to put the certificate, keys etc there or use the enroll command, it will create the private key and CSR and send it to the Puppet CA and then wait until it gets signed (up to 30 minutes).
+
+```
+# stream-replicator enroll foo.replicator --dir /etc/stream-replicator/ssl
+Attempting to download certificate for bob, try 1.
+Attempting to download certificate for bob, try 2.
+Attempting to download certificate for bob, try 3.
+Attempting to download certificate for bob, try 4.
+```
+
+### Full Manual Config
+
+If you have your own CA you can use this too, we can't help you enroll in that that, you would configure it like this:
+
+```yaml
+tls:
+  identity: foo.replicator
+  scheme: manual
+  ca: /path/to/ca.pem
+  cert: /path/to/cert.pem
+  key: /path/to/key.pem
+
+topics:
+    cmdb:
+        topic: acme.cmdb
+        source_url: nats://source1:4222,nats://source2:4222
+        source_cluster_id: dc1
+        target_url: nats://target1:4222,nats://target2:4222
+        target_cluster_id: dc2
+```
 
 ## Replicating a topic, preserving order
 
@@ -305,7 +362,7 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 metadata_expire=300
 ```
 
-Nightly packages are versioned `0.99.0` with a date portion added:  `stream-replicator-0.99.0.20180126-1.el7.x86_64.rpm`
+Nightly packages are versioned `0.99.0` with a date portion added: `stream-replicator-0.99.0.20180126-1.el7.x86_64.rpm`
 
 ## Puppet Module
 
