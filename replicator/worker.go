@@ -18,13 +18,13 @@ type worker struct {
 
 	from   stan.Conn
 	to     stan.Conn
-	config config.TopicConf
+	config *config.TopicConf
 	tls    bool
 	log    *logrus.Entry
 	sub    stan.Subscription
 }
 
-func newWorker(i int, config config.TopicConf, tls bool, log *logrus.Entry) *worker {
+func newWorker(i int, config *config.TopicConf, tls bool, log *logrus.Entry) *worker {
 	w := worker{
 		name:   fmt.Sprintf("%s_%d", config.Name, i),
 		log:    log.WithFields(logrus.Fields{"worker": i}),
@@ -135,7 +135,7 @@ func (w *worker) connect(ctx context.Context) error {
 	wg.Wait()
 
 	if w.from == nil || w.to == nil {
-		return fmt.Errorf("Could not establish initial connection to Stream brokers")
+		return fmt.Errorf("could not establish initial connection to Stream brokers")
 	}
 
 	return nil

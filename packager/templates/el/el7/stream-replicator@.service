@@ -7,7 +7,7 @@ StandardOutput=syslog
 StandardError=syslog
 User=nobody
 Group=nobody
-ExecStart={{cpkg_bindir}}/{{cpkg_name}} --config={{cpkg_etcdir}}/sr.yaml --topic=%i
+ExecStart={{cpkg_bindir}}/{{cpkg_name}} replicate --config={{cpkg_etcdir}}/sr.yaml --topic=%i
 
 [Install]
 WantedBy=multi-user.target

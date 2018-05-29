@@ -4,7 +4,7 @@ class stream_replicator::install {
     } else {
         $ensure = "absent"
     }
-    
+
     package{$stream_replicator::package_name:
         ensure => $ensure
     }

@@ -6,9 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
+	"time"
 
+	"github.com/choria-io/go-security/puppetsec"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/replicator"
 	"github.com/sirupsen/logrus"
@@ -21,6 +26,14 @@ var (
 	ctx     context.Context
 	version = "unknown"
 	sha     = "unknown"
+
+	cfile   string
+	topic   string
+	pidfile string
+
+	enrollIdentity string
+	enrollCA       string
+	enrollDir      string
 )
 
 func Run() {
@@ -28,20 +41,68 @@ func Run() {
 	app.Author("R.I.Pienaar <rip@devco.net>")
 	app.Version(version)
 
-	cfile := ""
-	topic := ""
-	pidfile := ""
+	replicate := app.Command("replicate", "Starts the Stream Replication process")
+	replicate.Default()
 
-	app.Flag("config", "Configuration file").StringVar(&cfile)
-	app.Flag("topic", "Topic to replicate").Required().StringVar(&topic)
-	app.Flag("pid", "Write running PID to a file").StringVar(&pidfile)
+	replicate.Flag("config", "Configuration file").StringVar(&cfile)
+	replicate.Flag("topic", "Topic to replicate").Required().StringVar(&topic)
+	replicate.Flag("pid", "Write running PID to a file").StringVar(&pidfile)
 
-	kingpin.MustParse(app.Parse(os.Args[1:]))
+	enroll := app.Command("enroll", "Enrolls with a Puppet CA")
+	enroll.Arg("identity", "Certificate Name to use when enrolling").StringVar(&enrollIdentity)
+	enroll.Flag("ca", "Host and port for the Puppet CA in host:port format").Default("puppet:8140").StringVar(&enrollCA)
+	enroll.Flag("dir", "Directory to write SSL configuration to").Required().StringVar(&enrollDir)
 
-	done := make(chan int, 1)
-	wg := &sync.WaitGroup{}
+	command := kingpin.MustParse(app.Parse(os.Args[1:]))
+
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
+
+	switch command {
+	case "replicate":
+		runReplicate()
+	default:
+		runEnroll()
+	}
+}
+
+func runEnroll() {
+	cfg := puppetsec.Config{
+		Identity:   enrollIdentity,
+		SSLDir:     enrollDir,
+		DisableSRV: true,
+	}
+
+	re := regexp.MustCompile("^((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9]))\\:(\\d+)$")
+
+	if re.MatchString(enrollCA) {
+		parts := strings.Split(enrollCA, ":")
+		cfg.PuppetCAHost = parts[0]
+
+		p, err := strconv.Atoi(parts[1])
+		if err != nil {
+			logrus.Fatalf("Could not enroll with the Puppet CA: %s", err)
+		}
+
+		cfg.PuppetCAPort = p
+	}
+
+	prov, err := puppetsec.New(puppetsec.WithConfig(&cfg), puppetsec.WithLog(logrus.WithField("provider", "puppet")))
+	if err != nil {
+		logrus.Fatalf("Could not enroll with the Puppet CA: %s", err)
+	}
+
+	wait, _ := time.ParseDuration("30m")
+
+	err = prov.Enroll(ctx, wait, func(try int) { fmt.Printf("Attempting to download certificate for %s, try %d.\n", enrollIdentity, try) })
+	if err != nil {
+		logrus.Fatalf("Could not enroll with the Puppet CA: %s", err)
+	}
+}
+
+func runReplicate() {
+	done := make(chan int, 1)
+	wg := &sync.WaitGroup{}
 
 	err := config.Load(cfile)
 	if err != nil {
@@ -95,7 +156,7 @@ func interruptHandler() {
 	}
 }
 
-func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic config.TopicConf, topicname string) {
+func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic *config.TopicConf, topicname string) {
 	err := rep.Setup(topicname, topic)
 	if err != nil {
 		logrus.Errorf("Could not configure Replicator: %s", err)

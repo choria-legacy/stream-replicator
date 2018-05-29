@@ -11,5 +11,6 @@ type Stream_replicator::Topic = Struct[{
   age => Optional[Pattern[/\d+(m|h)/]],
   monitor => Optional[Integer],
   name => Optional[String],
-  advisory => Optional[Stream_replicator::Advisory]
+  advisory => Optional[Stream_replicator::Advisory],
+  tls => Optional[Variant[Stream_replicator::FileSSL, Stream_replicator::PuppetSSL]]
 }]

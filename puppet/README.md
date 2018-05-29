@@ -36,7 +36,7 @@ class{"stream_replicator":
       "target_url"        => "nats://nats1.dc2.acme.net:4222",
       "target_cluster_id" => "dc2",
     },
-    "cmdb"                => {
+    "jobs"                => {
       "topic"             => "acme.jobs",
       "source_url"        => "nats://nats1.dc1.acme.net:4222",
       "source_cluster_id" => "dc1",
@@ -48,3 +48,41 @@ class{"stream_replicator":
 ```
 
 Full reference about the available options for configuring topics can be found in the project documentation.
+
+### TLS
+
+While this module support configuring TLS properties such as paths to certificates it cannot create these for you, you have to arrange another means of delivering the SSL keys, certificates etc to the host - perhaps in your profile class.
+
+If you use the Puppet scheme you can configure it as below and use the `stream-replicator enroll` command to create the SSL files:
+
+```puppet
+class{"stream_replicator":
+  managed_topics          => ["cmdb", "jobs"],
+  tls                     => {
+    "identity"            => $facts["fqdn"],
+    "scheme"              => "puppet",
+    "ssl_dir"             => "/etc/stream-replicator/ssl"
+  },
+  topics                  => {
+    # as above
+  }
+}
+```
+
+If you have another CA you can configure it manually:
+
+```puppet
+class{"stream_replicator":
+  managed_topics          => ["cmdb", "jobs"],
+  tls                     => {
+    "identity"            => $facts["fqdn"],
+    "scheme"              => "manual",
+    "ca"                  => "/path/to/ca.pem",
+    "cert"                => "/path/to/cert.pem",
+    "key"                 => "/path/to/key.pem"
+  },
+  topics                  => {
+    # as above
+  }
+}
+```
