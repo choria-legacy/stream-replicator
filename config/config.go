@@ -6,17 +6,19 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/choria-io/stream-replicator/ssl"
+	"github.com/choria-io/go-security"
 	"github.com/ghodss/yaml"
 )
 
 type replications struct {
-	Topics   map[string]TopicConf `json:"topics"`
+	Topics   map[string]*TopicConf `json:"topics"`
 	Debug    bool
 	Verbose  bool
 	Logfile  string   `json:"logfile"`
 	TLS      *TLSConf `json:"tls"`
 	StateDir string   `json:"state_dir"`
+
+	SecurityProvider security.Provider
 }
 
 // TopicConf is the configuration for a specific topic
@@ -35,17 +37,12 @@ type TopicConf struct {
 	Name        string        `json:"name"`
 	MonitorPort int           `json:"monitor"`
 	Advisory    *AdvisoryConf `json:"advisory"`
+	TLS         *TLSConf      `json:"tls"`
+
+	SecurityProvider security.Provider `json:"-"`
 }
 
-// TLSConf describes the TLS config for a NATS connection
-type TLSConf struct {
-	SSLDir string `json:"ssl_dir"`
-	Scheme string `json:"scheme"`
-	CA     string `json:"ca"`
-	Cert   string `json:"cert"`
-	Key    string `json:"key"`
-}
-
+// AdvisoryConf configures an advisory target
 type AdvisoryConf struct {
 	Target  string `json:"target"`
 	Cluster string `json:"cluster" validate:"enum=source,target"`
@@ -53,7 +50,7 @@ type AdvisoryConf struct {
 }
 
 var config = replications{
-	Topics: make(map[string]TopicConf),
+	Topics: make(map[string]*TopicConf),
 }
 
 // Load reads configuration from a YAML file
@@ -74,11 +71,30 @@ func Load(file string) error {
 
 	err = json.Unmarshal(j, &config)
 	if err != nil {
-		return fmt.Errorf("Could not parse config file %s as YAML: %s", file, err)
+		return fmt.Errorf("could not parse config file %s as YAML: %s", file, err)
 	}
 
 	if config.TLS != nil {
-		ssl.Configure(config.TLS.Scheme, config.TLS.Options()...)
+		config.SecurityProvider, err = config.TLS.SecurityProvider()
+		if err != nil {
+			return fmt.Errorf("could not configure system SSL: %s", err)
+		}
+
+	}
+
+	for _, t := range config.Topics {
+		t.SecurityProvider = config.SecurityProvider
+
+		if t.TLS == nil {
+			t.TLS = config.TLS
+		}
+
+		if t.TLS != nil {
+			t.SecurityProvider, err = t.TLS.SecurityProvider()
+			if err != nil {
+				return fmt.Errorf("could not configure topic %s SSL: %s", t.Name, err)
+			}
+		}
 	}
 
 	return nil
@@ -110,32 +126,11 @@ func LogFile() string {
 }
 
 // Topic is the configuration for a specific topic from the file
-func Topic(name string) (TopicConf, error) {
+func Topic(name string) (*TopicConf, error) {
 	t, ok := config.Topics[name]
 	if !ok {
-		return TopicConf{}, fmt.Errorf("Unknown topic configuration: %s", name)
+		return nil, fmt.Errorf("unknown topic configuration: %s", name)
 	}
 
 	return t, nil
-}
-
-// Options return options that configure the ssl personalities
-func (t *TLSConf) Options() (opts []ssl.Option) {
-	if t.SSLDir != "" {
-		opts = append(opts, ssl.Directory(t.SSLDir))
-	}
-
-	if t.CA != "" {
-		opts = append(opts, ssl.CA(t.CA))
-	}
-
-	if t.Cert != "" {
-		opts = append(opts, ssl.Cert(t.Cert))
-	}
-
-	if t.Key != "" {
-		opts = append(opts, ssl.Key(t.Key))
-	}
-
-	return opts
 }

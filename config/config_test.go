@@ -4,8 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/choria-io/stream-replicator/ssl"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -49,7 +47,7 @@ var _ = Describe("Config", func() {
 			Expect(config.Verbose).To(BeFalse())
 
 			Expect(config.TLS).ToNot(BeNil())
-			Expect(ssl.CAPath()).To(Equal("/tmp/tls/ca.pem"))
+			Expect(config.SecurityProvider).ToNot(BeNil())
 
 			Expect(TLS()).To(BeTrue())
 			Expect(Debug()).To(BeTrue())

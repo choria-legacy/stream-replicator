@@ -22,15 +22,15 @@ type Inspecter interface {
 }
 
 // Configure configures a given limiter
-func Configure(ctx context.Context, wg *sync.WaitGroup, c config.TopicConf, ins Inspecter) error {
+func Configure(ctx context.Context, wg *sync.WaitGroup, c *config.TopicConf, ins Inspecter) error {
 	d, err := time.ParseDuration(c.MinAge)
 	if err != nil {
-		return fmt.Errorf("Could not parse duration '%s': %s", c.MinAge, err)
+		return fmt.Errorf("could not parse duration '%s': %s", c.MinAge, err)
 	}
 
 	err = ins.Configure(ctx, wg, c.Inspect, c.UpdateFlag, d, c.Name)
 	if err != nil {
-		return fmt.Errorf("Could not configure inspecter: %s", err)
+		return fmt.Errorf("could not configure inspecter: %s", err)
 	}
 
 	inspecter = ins
