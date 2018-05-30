@@ -1,5 +1,5 @@
-hash: 9657df3449f2f6738697c9aec0b490082cf40ca128a34ba21e5e712dabf27fe7
-updated: 2018-05-29T13:05:00.88298+02:00
+hash: f7c6a83b9b77ae4741b048388febf0defb7b1e811f52a257b82eb5982eb64392
+updated: 2018-05-30T10:41:02.980026+02:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -18,7 +18,7 @@ imports:
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
   repo: https://github.com/boltdb/bolt
 - name: github.com/choria-io/go-choria
-  version: febc63588fc74351f9c74f8c4c5e67e383e9b779
+  version: a3b74b8d7769db8ec227d4cf0a75aaebb28ad2fd
   subpackages:
   - build
   - config
@@ -28,7 +28,7 @@ imports:
 - name: github.com/choria-io/go-confkey
   version: 634d2c41860498507b0c7eeb2f8a33b1aa6a809d
 - name: github.com/choria-io/go-security
-  version: 2f4cff397c5abc539b775a4c5c55f77f7a0d2449
+  version: 615ff9a3ca0cabc08289e491ef8f57b6a51031a7
   subpackages:
   - filesec
   - puppetsec
@@ -55,7 +55,7 @@ imports:
   - proto
   - protoc-gen-gogo/descriptor
 - name: github.com/golang/protobuf
-  version: 3a3da3a4e26776cc22a79ef46d5d58477532dede
+  version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
   subpackages:
   - proto
 - name: github.com/hashicorp/go-immutable-radix
@@ -109,14 +109,14 @@ imports:
   - stores
   - util
 - name: github.com/nats-io/nuid
-  version: 3e58d42c9cfe5cd9429f1a21ad8f35cd859ba829
+  version: 28b996b57a46dd0c2aa3a3dc7fa8780878331d00
 - name: github.com/prometheus/client_golang
   version: 967789050ba94deca04a5e84cce8ad472ce313c1
   subpackages:
   - prometheus
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
