@@ -97,7 +97,7 @@ func Configure(tls bool, c *config.TopicConf) error {
 }
 
 // Connect initiates the connection to NATS Streaming
-func Connect(ctx context.Context, wg *sync.WaitGroup) {
+func Connect(ctx context.Context, wg *sync.WaitGroup, reconn chan string) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -106,7 +106,7 @@ func Connect(ctx context.Context, wg *sync.WaitGroup) {
 	}
 
 	log.Debug("Starting advisor connection")
-	connect(ctx)
+	connect(ctx, reconn)
 
 	log.Debug("Starting advisor publisher")
 	wg.Add(1)
@@ -234,7 +234,7 @@ func newAdvisory(id string, event EventType) AgeAdvisoryV1 {
 	}
 }
 
-func connect(ctx context.Context) {
+func connect(ctx context.Context, reconn chan string) {
 	var c *connector.Connection
 
 	if conf.Advisory.Cluster == "source" {
@@ -245,7 +245,9 @@ func connect(ctx context.Context) {
 		c = connector.New(name, natstls, connector.Target, conf, log)
 	}
 
-	conn = c.Connect(ctx)
+	conn = c.Connect(ctx, func(_ stan.Conn, reason error) {
+		reconn <- fmt.Sprintf("advisory stream disconnected: %s", reason)
+	})
 }
 
 func publisher(ctx context.Context, wg *sync.WaitGroup) {
