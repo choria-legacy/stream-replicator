@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2018/06/25|      |Release 0.2.0                                                                                            |
+|2018/06/25|85    |Improve the robustness of connection error handling, requires NATS Streaming Server >= 0.10.0            |
+|2018/05/28|88    |Support Choria SSL - including SSL enrollment, Puppet CA and manual CA support                           |
+|2018/05/18|86    |Allow data producers to include hints that data should be replicated immediately                         |
 |2018/04/11|      |Release 0.1.1                                                                                            |
 |2018/04/11|82    |Do not zero the logfile on startup                                                                       |
 |2018/04/11|80    |Fix startup announce message ordering                                                                    |
