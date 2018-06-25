@@ -8,6 +8,7 @@ import (
 
 	"github.com/choria-io/stream-replicator/config"
 	conntest "github.com/choria-io/stream-replicator/connector/test"
+	"github.com/nats-io/go-nats-streaming"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -69,7 +70,7 @@ var _ = Describe("Connector", func() {
 			defer left.Shutdown()
 
 			c := New("testcon", false, Source, conf, log)
-			con := c.Connect(ctx)
+			con := c.Connect(ctx, func(_ stan.Conn, reason error) {})
 			defer con.Close()
 		})
 	})
