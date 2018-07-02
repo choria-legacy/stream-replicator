@@ -22,14 +22,12 @@ type Copier struct {
 	Log    *logrus.Entry
 	ctx    context.Context
 	cancel func()
-	reconn chan string
 }
 
 // Setup validates the configuration of the copier and sets defaults where possible
-func (c *Copier) Setup(name string, topic *config.TopicConf, reconn chan string) error {
+func (c *Copier) Setup(name string, topic *config.TopicConf) error {
 	c.config = topic
 	c.tls = config.TLS()
-	c.reconn = reconn
 
 	if c.config.Topic == "" {
 		return fmt.Errorf("a topic is required")
@@ -90,13 +88,13 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 			return
 		}
 
-		advisor.Connect(c.ctx, wg, c.reconn)
+		advisor.Connect(c.ctx, wg)
 	}
 
 	for i := 0; i < c.config.Workers; i++ {
 		w := newWorker(i, c.config, c.tls, c.Log)
 		wg.Add(1)
-		go w.Run(ctx, wg, c.reconn)
+		go w.Run(ctx, wg)
 	}
 
 	select {

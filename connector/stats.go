@@ -5,6 +5,11 @@ import (
 )
 
 var (
+	streamReconnectCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "stream_replicator_stream_reconnections",
+		Help: "Number of times the NATS Stream reconnected",
+	}, []string{"name", "worker"})
+
 	reconnectCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "stream_replicator_connection_reconnections",
 		Help: "Number of times the connector reconnected to the middleware",
@@ -25,4 +30,5 @@ func init() {
 	prometheus.MustRegister(reconnectCtr)
 	prometheus.MustRegister(closedCtr)
 	prometheus.MustRegister(errorCtr)
+	prometheus.MustRegister(streamReconnectCtr)
 }

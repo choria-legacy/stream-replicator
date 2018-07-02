@@ -10,9 +10,16 @@ import (
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
-	"github.com/nats-io/go-nats-streaming"
+	nats "github.com/nats-io/go-nats"
 	"github.com/sirupsen/logrus"
 )
+
+type stream interface {
+	Connect(ctx context.Context)
+	Publish(subject string, data []byte) error
+	Close() error
+	NatsConn() *nats.Conn
+}
 
 // AgeAdvisoryV1 defines a message published when a node has not been seen within configured deadlines and when it recovers
 type AgeAdvisoryV1 struct {
@@ -55,7 +62,7 @@ var interval time.Duration
 var age time.Duration
 var err error
 var log *logrus.Entry
-var conn stan.Conn
+var conn stream
 var natstls bool
 var name string
 
@@ -97,7 +104,7 @@ func Configure(tls bool, c *config.TopicConf) error {
 }
 
 // Connect initiates the connection to NATS Streaming
-func Connect(ctx context.Context, wg *sync.WaitGroup, reconn chan string) {
+func Connect(ctx context.Context, wg *sync.WaitGroup) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -106,7 +113,7 @@ func Connect(ctx context.Context, wg *sync.WaitGroup, reconn chan string) {
 	}
 
 	log.Debug("Starting advisor connection")
-	connect(ctx, reconn)
+	connect(ctx)
 
 	log.Debug("Starting advisor publisher")
 	wg.Add(1)
@@ -234,20 +241,16 @@ func newAdvisory(id string, event EventType) AgeAdvisoryV1 {
 	}
 }
 
-func connect(ctx context.Context, reconn chan string) {
-	var c *connector.Connection
-
+func connect(ctx context.Context) {
 	if conf.Advisory.Cluster == "source" {
 		log.Infof("Connection to source to publish advisories")
-		c = connector.New(name, natstls, connector.Source, conf, log)
+		conn = connector.New(name, natstls, connector.Source, conf, log)
 	} else {
 		log.Infof("Connection to target to publish advisories")
-		c = connector.New(name, natstls, connector.Target, conf, log)
+		conn = connector.New(name, natstls, connector.Target, conf, log)
 	}
 
-	conn = c.Connect(ctx, func(_ stan.Conn, reason error) {
-		reconn <- fmt.Sprintf("advisory stream disconnected: %s", reason)
-	})
+	conn.Connect(ctx)
 }
 
 func publisher(ctx context.Context, wg *sync.WaitGroup) {

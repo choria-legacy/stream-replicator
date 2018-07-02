@@ -34,8 +34,6 @@ var (
 	enrollIdentity string
 	enrollCA       string
 	enrollDir      string
-
-	reconn chan string
 )
 
 func Run() {
@@ -56,8 +54,6 @@ func Run() {
 	enroll.Flag("dir", "Directory to write SSL configuration to").Required().StringVar(&enrollDir)
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
-
-	reconn = make(chan string, 5)
 
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
@@ -122,7 +118,7 @@ func runReplicate() {
 		os.Exit(1)
 	}
 
-	go interruptHandler(wg)
+	go interruptHandler()
 
 	writePID(pidfile)
 
@@ -145,31 +141,15 @@ func writePID(pidfile string) {
 	}
 }
 
-func interruptHandler(wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func interruptHandler() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	for {
 		select {
-		case reason := <-reconn:
-			logrus.Errorf("Restarting replicator after: %s", reason)
-
-			// stops everything and sleep a bit to give state saves a bit of time etc
-			cancel()
-			time.Sleep(1 * time.Second)
-
-			err := syscall.Exec(os.Args[0], os.Args, os.Environ())
-			if err != nil {
-				logrus.Errorf("Could not restart Stream Replicator: %s", err)
-			}
-
 		case sig := <-sigs:
 			logrus.Infof("Shutting down on %s", sig)
 			cancel()
-			return
-
 		case <-ctx.Done():
 			return
 		}
@@ -177,7 +157,7 @@ func interruptHandler(wg *sync.WaitGroup) {
 }
 
 func startReplicator(ctx context.Context, wg *sync.WaitGroup, done chan int, topic *config.TopicConf, topicname string) {
-	err := rep.Setup(topicname, topic, reconn)
+	err := rep.Setup(topicname, topic)
 	if err != nil {
 		logrus.Errorf("Could not configure Replicator: %s", err)
 		return
