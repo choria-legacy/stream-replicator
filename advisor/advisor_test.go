@@ -70,7 +70,7 @@ var _ = Describe("Advisor", func() {
 			defer left.Shutdown()
 
 			conf.Advisory.Cluster = "source"
-			connect(ctx, make(chan string, 1))
+			connect(ctx)
 
 			Expect(conn.NatsConn().ConnectedUrl()).To(Equal("nats://localhost:34222"))
 		})
@@ -87,7 +87,7 @@ var _ = Describe("Advisor", func() {
 			defer right.Shutdown()
 
 			conf.Advisory.Cluster = "target"
-			connect(ctx, make(chan string, 1))
+			connect(ctx)
 
 			Expect(conn.NatsConn().ConnectedUrl()).To(Equal("nats://localhost:44222"))
 		})
@@ -161,11 +161,9 @@ var _ = Describe("Advisor", func() {
 
 			Expect(seen).To(BeEmpty())
 
-			mu.Lock()
 			seen["old"] = time.Now().Add(-1 * time.Hour)
 			seen["expired"] = time.Now().Add(-3 * time.Hour)
 			seen["new"] = time.Now()
-			mu.Unlock()
 
 			Expect(out).To(HaveLen(0))
 
@@ -173,21 +171,13 @@ var _ = Describe("Advisor", func() {
 
 			Expect(out).To(HaveLen(2))
 
-			// ordering isnt guaranteed using a map here
-			// allows us to check both at least got fired
-			// uniquely, previoulsy this test would not use
-			// a map and was failing intermitantly
-			msgs := make(map[string]AgeAdvisoryV1)
 			msg := <-out
-			msgs[msg.Value] = msg
+			Expect(msg.Value).To(Equal("old"))
+			Expect(msg.Event).To(Equal(Timeout))
+
 			msg = <-out
-			msgs[msg.Value] = msg
-
-			Expect(msgs["old"].Value).To(Equal("old"))
-			Expect(msgs["old"].Event).To(Equal(Timeout))
-
-			Expect(msgs["expired"].Value).To(Equal("expired"))
-			Expect(msgs["expired"].Event).To(Equal(Expired))
+			Expect(msg.Value).To(Equal("expired"))
+			Expect(msg.Event).To(Equal(Expired))
 
 			_, found := advised["old"]
 			Expect(found).To(BeTrue())

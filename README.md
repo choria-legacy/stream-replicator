@@ -15,10 +15,6 @@ When there are many workers or it's specified to belong to a queue group a Durab
 
 First time it connects it attempts to replicate all messages, as the subscription is Durable it will from then on continue where it left off.
 
-## Requirements
-
-For reliable operation where connection issues get correctly detected NATS Streaming Server version 0.10.0 or newer is required
-
 ## Status
 
 This is a pretty new project that is being used in production, however as it is new and developing use with caution. I'd love any feedback you might have - especially design ideas about multi worker order preserving replication!
@@ -374,4 +370,4 @@ A Puppet module to install and manage the Stream Replicator can be found on the 
 
 ## Thanks
 
-<a href="https://packagecloud.io/"><img src="https://packagecloud.io/images/packagecloud-badge.png" width="158"></a>
+<img src="https://packagecloud.io/images/packagecloud-badge.png" width="158">

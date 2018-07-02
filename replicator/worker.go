@@ -35,18 +35,18 @@ func newWorker(i int, config *config.TopicConf, tls bool, log *logrus.Entry) *wo
 	return &w
 }
 
-func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup, reconn chan string) {
+func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	err := w.connect(ctx, reconn)
+	err := w.connect(ctx)
 	if err != nil {
-		reconn <- fmt.Sprintf("could not start worker: %s", err)
+		w.log.Errorf("Could not start worker: %s", err)
 		return
 	}
 
 	err = w.subscribe()
 	if err != nil {
-		reconn <- fmt.Sprintf("could not subscribe to source %s: %s", w.config.Topic, err)
+		w.log.Errorf("Could not subscribe to source %s", w.config.Topic)
 		return
 	}
 
@@ -115,25 +115,21 @@ func (w *worker) subscribe() error {
 	return err
 }
 
-func (w *worker) connect(ctx context.Context, reconn chan string) error {
+func (w *worker) connect(ctx context.Context) error {
 	wg := &sync.WaitGroup{}
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		c := connector.New(w.name, w.tls, connector.Source, w.config, w.log)
-		w.from = c.Connect(ctx, func(_ stan.Conn, reason error) {
-			reconn <- fmt.Sprintf("source stream disconnected: %s", reason)
-		})
+		w.from = c.Connect(ctx)
 	}(wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		c := connector.New(w.name, w.tls, connector.Target, w.config, w.log)
-		w.to = c.Connect(ctx, func(_ stan.Conn, reason error) {
-			reconn <- fmt.Sprintf("target stream disconnected: %s", reason)
-		})
+		w.to = c.Connect(ctx)
 	}(wg)
 
 	wg.Wait()

@@ -13,14 +13,13 @@ import (
 
 // Connection holds a connection to NATS Streaming
 type Connection struct {
-	url      string
-	log      *logrus.Entry
-	conn     stan.Conn
-	natsConn *nats.Conn
-	name     string
-	cfg      *config.TopicConf
-	id       string
-	tls      bool
+	url  string
+	log  *logrus.Entry
+	conn stan.Conn
+	name string
+	cfg  *config.TopicConf
+	id   string
+	tls  bool
 }
 
 // Direction indicates which of the connectors to connect to
@@ -52,15 +51,15 @@ func New(name string, tls bool, dir Direction, cfg *config.TopicConf, logger *lo
 }
 
 // Connect connects to the configured stream
-func (c *Connection) Connect(ctx context.Context, cb func(stan.Conn, error)) stan.Conn {
-	c.conn = c.connectSTAN(ctx, c.id, c.name, c.url, cb)
+func (c *Connection) Connect(ctx context.Context) stan.Conn {
+	c.conn = c.connectSTAN(ctx, c.id, c.name, c.url)
 
 	return c.conn
 }
 
-func (c *Connection) connectSTAN(ctx context.Context, cid string, name string, urls string, cb func(stan.Conn, error)) stan.Conn {
-	c.natsConn = c.connectNATS(ctx, name, urls)
-	if c.natsConn == nil {
+func (c *Connection) connectSTAN(ctx context.Context, cid string, name string, urls string) stan.Conn {
+	n := c.connectNATS(ctx, name, urls)
+	if n == nil {
 		c.log.Errorf("%s NATS connection could not be established, cannot connect to the Stream", name)
 		return nil
 	}
@@ -72,7 +71,7 @@ func (c *Connection) connectSTAN(ctx context.Context, cid string, name string, u
 	for {
 		try++
 
-		conn, err = stan.Connect(cid, name, stan.NatsConn(c.natsConn), stan.SetConnectionLostHandler(cb))
+		conn, err = stan.Connect(cid, name, stan.NatsConn(n))
 		if err != nil {
 			c.log.Warnf("%s initial connection to the NATS Streaming broker cluster failed: %s", name, err)
 
