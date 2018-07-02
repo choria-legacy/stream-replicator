@@ -10,9 +10,16 @@ import (
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
-	"github.com/nats-io/go-nats-streaming"
+	nats "github.com/nats-io/go-nats"
 	"github.com/sirupsen/logrus"
 )
+
+type stream interface {
+	Connect(ctx context.Context)
+	Publish(subject string, data []byte) error
+	Close() error
+	NatsConn() *nats.Conn
+}
 
 // AgeAdvisoryV1 defines a message published when a node has not been seen within configured deadlines and when it recovers
 type AgeAdvisoryV1 struct {
@@ -55,7 +62,7 @@ var interval time.Duration
 var age time.Duration
 var err error
 var log *logrus.Entry
-var conn stan.Conn
+var conn stream
 var natstls bool
 var name string
 
@@ -235,17 +242,15 @@ func newAdvisory(id string, event EventType) AgeAdvisoryV1 {
 }
 
 func connect(ctx context.Context) {
-	var c *connector.Connection
-
 	if conf.Advisory.Cluster == "source" {
 		log.Infof("Connection to source to publish advisories")
-		c = connector.New(name, natstls, connector.Source, conf, log)
+		conn = connector.New(name, natstls, connector.Source, conf, log)
 	} else {
 		log.Infof("Connection to target to publish advisories")
-		c = connector.New(name, natstls, connector.Target, conf, log)
+		conn = connector.New(name, natstls, connector.Target, conf, log)
 	}
 
-	conn = c.Connect(ctx)
+	conn.Connect(ctx)
 }
 
 func publisher(ctx context.Context, wg *sync.WaitGroup) {

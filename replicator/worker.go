@@ -13,15 +13,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type stream interface {
+	Connect(ctx context.Context)
+	Subscribe(subject string, qgroup string, cb stan.MsgHandler, opts ...stan.SubscriptionOption) error
+	Publish(subject string, data []byte) error
+	Close() error
+}
+
 type worker struct {
 	name string
 
-	from   stan.Conn
-	to     stan.Conn
+	from   stream
+	to     stream
 	config *config.TopicConf
 	tls    bool
 	log    *logrus.Entry
-	sub    stan.Subscription
 }
 
 func newWorker(i int, config *config.TopicConf, tls bool, log *logrus.Entry) *worker {
@@ -104,13 +110,7 @@ func (w *worker) subscribe() error {
 
 	var err error
 
-	if w.config.Queued {
-		w.log.Infof("subscribing to %s in queue group %s", w.config.Topic, w.config.QueueGroup)
-		w.sub, err = w.from.QueueSubscribe(w.config.Topic, w.config.QueueGroup, w.copyf, opts...)
-	} else {
-		w.log.Infof("subscribing to %s", w.config.Topic)
-		w.sub, err = w.from.Subscribe(w.config.Topic, w.copyf, opts...)
-	}
+	err = w.from.Subscribe(w.config.Topic, w.config.QueueGroup, w.copyf, opts...)
 
 	return err
 }
@@ -121,15 +121,15 @@ func (w *worker) connect(ctx context.Context) error {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		c := connector.New(w.name, w.tls, connector.Source, w.config, w.log)
-		w.from = c.Connect(ctx)
+		w.from = connector.New(w.name, w.tls, connector.Source, w.config, w.log)
+		w.from.Connect(ctx)
 	}(wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		c := connector.New(w.name, w.tls, connector.Target, w.config, w.log)
-		w.to = c.Connect(ctx)
+		w.to = connector.New(w.name, w.tls, connector.Target, w.config, w.log)
+		w.to.Connect(ctx)
 	}(wg)
 
 	wg.Wait()

@@ -1,5 +1,5 @@
-hash: f7c6a83b9b77ae4741b048388febf0defb7b1e811f52a257b82eb5982eb64392
-updated: 2018-05-30T10:41:02.980026+02:00
+hash: d6cb7b9989283da5b0adf73743f9b3556dfb6b4f4f2680579a3ae9d5107c9059
+updated: 2018-07-02T11:46:08.63013+03:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -18,7 +18,7 @@ imports:
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
   repo: https://github.com/boltdb/bolt
 - name: github.com/choria-io/go-choria
-  version: a3b74b8d7769db8ec227d4cf0a75aaebb28ad2fd
+  version: 703e9d269cdd54a9839551aea5bfe9e5b481cda7
   subpackages:
   - build
   - config
@@ -28,7 +28,7 @@ imports:
 - name: github.com/choria-io/go-confkey
   version: 634d2c41860498507b0c7eeb2f8a33b1aa6a809d
 - name: github.com/choria-io/go-security
-  version: 615ff9a3ca0cabc08289e491ef8f57b6a51031a7
+  version: a221c72ee79ab400346d38837d7e8b289857247b
   subpackages:
   - filesec
   - puppetsec
@@ -97,11 +97,11 @@ imports:
   - encoders/builtin
   - util
 - name: github.com/nats-io/go-nats-streaming
-  version: 6e620057a207bd61e992c1c5b6a2de7b6a4cb010
+  version: e15a53f85e4932540600a16b56f6c4f65f58176f
   subpackages:
   - pb
 - name: github.com/nats-io/nats-streaming-server
-  version: 6026da1b7c444bf9f1d1b1d3ed14e435aabf02bc
+  version: 6027b20cd943a9fa598a664e4c8d7514fe684345
   subpackages:
   - logger
   - server
@@ -132,7 +132,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: c155da19408a8799da419ed3eeb0cb5db0ad5dbc
 - name: github.com/tidwall/gjson
-  version: 01f00f129617a6fe98941fb920d6c760241b54d2
+  version: f123b340873a0084cb27267eddd8ff615115fbff
 - name: github.com/tidwall/match
   version: 1731857f09b1f38450e2c12409748407822dc6be
 - name: golang.org/x/crypto

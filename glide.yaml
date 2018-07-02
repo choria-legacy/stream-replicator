@@ -5,7 +5,7 @@ import:
 - package: github.com/nats-io/go-nats
   version: ^1
 - package: github.com/nats-io/go-nats-streaming
-  version: '*'
+  version: '^0.4.0'
 - package: github.com/prometheus/client_golang
   version: '>= 0.9.0-pre1'
   subpackages:
@@ -18,7 +18,7 @@ import:
 - package: gopkg.in/alecthomas/kingpin.v2
   version: ^2
 - package: github.com/nats-io/nats-streaming-server
-  version: ^0.7.0
+  version: ^0.10.0
   subpackages:
   - server
 - package: github.com/nats-io/gnatsd

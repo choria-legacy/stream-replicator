@@ -42,7 +42,7 @@ var _ = Describe("Connector", func() {
 		}
 	})
 
-	var _ = Describe("New", func() {
+	Describe("New", func() {
 		It("Should configure the correct direction", func() {
 			c := New("testcon", true, Source, conf, log)
 			Expect(c.cfg).To(Equal(conf))
@@ -53,7 +53,7 @@ var _ = Describe("Connector", func() {
 		})
 	})
 
-	var _ = Describe("Connect", func() {
+	Describe("Connect", func() {
 		It("Should connect to the stream", func() {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
@@ -69,8 +69,8 @@ var _ = Describe("Connector", func() {
 			defer left.Shutdown()
 
 			c := New("testcon", false, Source, conf, log)
-			con := c.Connect(ctx)
-			defer con.Close()
+			c.Connect(ctx)
+			defer c.Close()
 		})
 	})
 })
