@@ -1,5 +1,5 @@
 hash: d6cb7b9989283da5b0adf73743f9b3556dfb6b4f4f2680579a3ae9d5107c9059
-updated: 2018-07-02T11:46:08.63013+03:00
+updated: 2018-11-02T14:42:52.00346+01:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -11,14 +11,14 @@ imports:
   version: 023a4bbe4bb9bfb23ee7e1afc8d0abad217641f3
   repo: https://github.com/armon/go-metrics
 - name: github.com/beorn7/perks
-  version: 3a771d992973f24aa725d07868b467d1ddfceafb
+  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
   repo: https://github.com/boltdb/bolt
 - name: github.com/choria-io/go-choria
-  version: 703e9d269cdd54a9839551aea5bfe9e5b481cda7
+  version: 86b6965cd06e13279436213653875a4927319eb7
   subpackages:
   - build
   - config
@@ -55,7 +55,7 @@ imports:
   - proto
   - protoc-gen-gogo/descriptor
 - name: github.com/golang/protobuf
-  version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
 - name: github.com/hashicorp/go-immutable-radix
@@ -74,17 +74,19 @@ imports:
 - name: github.com/hashicorp/raft
   version: 6d14f0c70869faabd9e60ba7ed88a6cbbd6a661f
   repo: https://github.com/hashicorp/raft
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: b729f2633dfe35f4d1d8a32385f6685610ce1cb5
 - name: github.com/mattn/go-colorable
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
-  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
+  version: 3fb116b820352b7f0c281308a4d6250c22d94e27
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   repo: https://github.com/matttproud/golang_protobuf_extensions
   subpackages:
   - pbutil
 - name: github.com/nats-io/gnatsd
-  version: add6d7930ae6d4bff8823b28999ea87bf1bfd23d
+  version: eed4fbc1458ce110ad1aa1adf904229bc8fda2a7
   subpackages:
   - conf
   - logger
@@ -92,7 +94,7 @@ imports:
   - server/pse
   - util
 - name: github.com/nats-io/go-nats
-  version: 062418ea1c2181f52dc0f954f6204370519a868b
+  version: fb0396ee0bdb8018b0fef30d6d1de798ce99cd05
   subpackages:
   - encoders/builtin
   - util
@@ -101,7 +103,7 @@ imports:
   subpackages:
   - pb
 - name: github.com/nats-io/nats-streaming-server
-  version: 6027b20cd943a9fa598a664e4c8d7514fe684345
+  version: 7b758bb93407505bc1d0cf26d091fc281d99ca0c
   subpackages:
   - logger
   - server
@@ -111,12 +113,13 @@ imports:
 - name: github.com/nats-io/nuid
   version: 28b996b57a46dd0c2aa3a3dc7fa8780878331d00
 - name: github.com/prometheus/client_golang
-  version: 967789050ba94deca04a5e84cce8ad472ce313c1
+  version: 1cafe34db7fdec6022e17e00e1c1ea501022f3e4
   subpackages:
   - prometheus
+  - prometheus/internal
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: 6f3806018612930941127f2a7c6c453ba2c527d2
+  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
   subpackages:
   - go
 - name: github.com/prometheus/common
@@ -130,9 +133,9 @@ imports:
   subpackages:
   - xfs
 - name: github.com/sirupsen/logrus
-  version: c155da19408a8799da419ed3eeb0cb5db0ad5dbc
+  version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
 - name: github.com/tidwall/gjson
-  version: f123b340873a0084cb27267eddd8ff615115fbff
+  version: 1e3f6aeaa5bad08d777ea7807b279a07885dd8b2
 - name: github.com/tidwall/match
   version: 1731857f09b1f38450e2c12409748407822dc6be
 - name: golang.org/x/crypto
@@ -143,6 +146,7 @@ imports:
   - ssh/terminal
 - name: golang.org/x/sys
   version: f7928cfef4d09d1b080aa2b6fd3ca9ba1567c733
+  repo: https://go.googlesource.com/sys
   subpackages:
   - unix
   - windows
@@ -154,10 +158,17 @@ imports:
 - name: gopkg.in/alecthomas/kingpin.v2
   version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/yaml.v2
-  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
+  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
 testImports:
+- name: github.com/hpcloud/tail
+  version: a1dbeea552b7c8df4b542c66073e393de198a800
+  subpackages:
+  - ratelimiter
+  - util
+  - watch
+  - winfile
 - name: github.com/onsi/ginkgo
-  version: fa5fabab2a1bfbd924faf4c067d07ae414e2aedf
+  version: 3774a09d95489ccaa16032e0770d08ea77ba6184
   subpackages:
   - config
   - internal/codelocation
@@ -177,7 +188,7 @@ testImports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: 62bff4df71bdbc266561a0caee19f0594b17c240
+  version: 7615b9433f86a8bdf29709bf288bc4fd0636a369
   subpackages:
   - format
   - internal/assertion
@@ -199,7 +210,7 @@ testImports:
   - html/atom
   - html/charset
 - name: golang.org/x/text
-  version: 5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877
+  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
   subpackages:
   - encoding
   - encoding/charmap
@@ -211,10 +222,12 @@ testImports:
   - encoding/simplifiedchinese
   - encoding/traditionalchinese
   - encoding/unicode
-  - internal/language
-  - internal/language/compact
   - internal/tag
   - internal/utf8internal
   - language
   - runes
   - transform
+- name: gopkg.in/fsnotify/fsnotify.v1
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
+- name: gopkg.in/tomb.v1
+  version: c131134a1947e9afd9cecfe11f4c6dff0732ae58

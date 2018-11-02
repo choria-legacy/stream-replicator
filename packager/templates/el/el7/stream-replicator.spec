@@ -71,7 +71,7 @@ fi
 /etc/logrotate.d/%{pkgname}
 /usr/lib/systemd/system/%{pkgname}@.service
 %attr(640, nobody, nobody)/var/log/%{pkgname}.log
-%attr(640, nobody, nobody)/var/lib/%{pkgname}
+%attr(740, nobody, nobody)/var/lib/%{pkgname}
 
 %changelog
 * Tue Dec 26 2017 R.I.Pienaar <rip@devco.net>
