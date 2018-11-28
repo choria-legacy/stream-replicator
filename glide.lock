@@ -1,5 +1,5 @@
-hash: d6cb7b9989283da5b0adf73743f9b3556dfb6b4f4f2680579a3ae9d5107c9059
-updated: 2018-11-02T14:42:52.00346+01:00
+hash: 3cd81ea72862d32bc30be306c95b109afe9e6147a425e991fe0de0b2f7cb8690
+updated: 2018-11-28T17:53:53.395727+01:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -11,14 +11,14 @@ imports:
   version: 023a4bbe4bb9bfb23ee7e1afc8d0abad217641f3
   repo: https://github.com/armon/go-metrics
 - name: github.com/beorn7/perks
-  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  version: 3a771d992973f24aa725d07868b467d1ddfceafb
   subpackages:
   - quantile
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
   repo: https://github.com/boltdb/bolt
 - name: github.com/choria-io/go-choria
-  version: 86b6965cd06e13279436213653875a4927319eb7
+  version: 684d9b00e1b5d35727bc46bffd3913b2ed45b8e6
   subpackages:
   - build
   - config
@@ -28,7 +28,7 @@ imports:
 - name: github.com/choria-io/go-confkey
   version: 634d2c41860498507b0c7eeb2f8a33b1aa6a809d
 - name: github.com/choria-io/go-security
-  version: a221c72ee79ab400346d38837d7e8b289857247b
+  version: 75654ad2139b915791141ab172d0930bf024fec7
   subpackages:
   - filesec
   - puppetsec
@@ -55,7 +55,7 @@ imports:
   - proto
   - protoc-gen-gogo/descriptor
 - name: github.com/golang/protobuf
-  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
+  version: 1918e1ff6ffd2be7bed0553df8650672c3bfe80d
   subpackages:
   - proto
 - name: github.com/hashicorp/go-immutable-radix
@@ -75,7 +75,7 @@ imports:
   version: 6d14f0c70869faabd9e60ba7ed88a6cbbd6a661f
   repo: https://github.com/hashicorp/raft
 - name: github.com/konsorten/go-windows-terminal-sequences
-  version: b729f2633dfe35f4d1d8a32385f6685610ce1cb5
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/mattn/go-colorable
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
@@ -113,13 +113,12 @@ imports:
 - name: github.com/nats-io/nuid
   version: 28b996b57a46dd0c2aa3a3dc7fa8780878331d00
 - name: github.com/prometheus/client_golang
-  version: 1cafe34db7fdec6022e17e00e1c1ea501022f3e4
+  version: 967789050ba94deca04a5e84cce8ad472ce313c1
   subpackages:
   - prometheus
-  - prometheus/internal
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
+  version: 5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f
   subpackages:
   - go
 - name: github.com/prometheus/common
@@ -129,8 +128,10 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: e645f4e5aaa8506fc71d6edbc5c4ff02c04c46f2
+  version: 185b4288413d2a0dd0806f78c90dde719829e5ae
   subpackages:
+  - internal/util
+  - nfs
   - xfs
 - name: github.com/sirupsen/logrus
   version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
@@ -158,7 +159,7 @@ imports:
 - name: gopkg.in/alecthomas/kingpin.v2
   version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/yaml.v2
-  version: d670f9405373e636a5a2765eea47fac0c9bc91a4
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 testImports:
 - name: github.com/hpcloud/tail
   version: a1dbeea552b7c8df4b542c66073e393de198a800
@@ -168,7 +169,7 @@ testImports:
   - watch
   - winfile
 - name: github.com/onsi/ginkgo
-  version: 3774a09d95489ccaa16032e0770d08ea77ba6184
+  version: 2e1be8f7d90e9d3e3e58b0ce470f2f14d075406f
   subpackages:
   - config
   - internal/codelocation
@@ -188,7 +189,7 @@ testImports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: 7615b9433f86a8bdf29709bf288bc4fd0636a369
+  version: 65fb64232476ad9046e57c26cd0bff3d3a8dc6cd
   subpackages:
   - format
   - internal/assertion
@@ -210,7 +211,7 @@ testImports:
   - html/atom
   - html/charset
 - name: golang.org/x/text
-  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  version: 6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2
   subpackages:
   - encoding
   - encoding/charmap
@@ -222,6 +223,8 @@ testImports:
   - encoding/simplifiedchinese
   - encoding/traditionalchinese
   - encoding/unicode
+  - internal/language
+  - internal/language/compact
   - internal/tag
   - internal/utf8internal
   - language
