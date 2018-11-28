@@ -6,8 +6,10 @@ import:
   version: ^1
 - package: github.com/nats-io/go-nats-streaming
   version: '^0.4.0'
+- package: github.com/prometheus/procfs
+  version: 185b4288413d2a0dd0806f78c90dde719829e5ae
 - package: github.com/prometheus/client_golang
-  version: '>= 0.9.0-pre1'
+  version: '0.9.0-pre1'
   subpackages:
   - prometheus
   - prometheus/promhttp
@@ -28,10 +30,11 @@ import:
 - package: github.com/fatih/color
   version: ^1.5.0
 - package: github.com/choria-io/go-choria
+  version: 684d9b00e1b5d35727bc46bffd3913b2ed45b8e6
   subpackages:
   - security
 - package: github.com/choria-io/go-security
-  version: ^0.0.2
+  version: ^0.2.1
 testImport:
 - package: github.com/onsi/ginkgo
   version: ^1
