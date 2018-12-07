@@ -9,7 +9,7 @@ import:
 - package: github.com/prometheus/procfs
   version: 185b4288413d2a0dd0806f78c90dde719829e5ae
 - package: github.com/prometheus/client_golang
-  version: '0.9.0-pre1'
+  version: '0.9.2'
   subpackages:
   - prometheus
   - prometheus/promhttp

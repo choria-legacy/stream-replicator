@@ -1,5 +1,5 @@
-hash: 3cd81ea72862d32bc30be306c95b109afe9e6147a425e991fe0de0b2f7cb8690
-updated: 2018-11-28T17:53:53.395727+01:00
+hash: cb99d40fd71a0d7ef7ece21bff0c4f028e0674cef7196ea636f1748b2432f639
+updated: 2018-12-07T18:01:35.374306+01:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -55,7 +55,7 @@ imports:
   - proto
   - protoc-gen-gogo/descriptor
 - name: github.com/golang/protobuf
-  version: 1918e1ff6ffd2be7bed0553df8650672c3bfe80d
+  version: 52132540909e117f2b98b0694383dc0ab1e1deca
   subpackages:
   - proto
 - name: github.com/hashicorp/go-immutable-radix
@@ -113,9 +113,10 @@ imports:
 - name: github.com/nats-io/nuid
   version: 28b996b57a46dd0c2aa3a3dc7fa8780878331d00
 - name: github.com/prometheus/client_golang
-  version: 967789050ba94deca04a5e84cce8ad472ce313c1
+  version: 505eaef017263e299324067d40ca2c48f6a2cf50
   subpackages:
   - prometheus
+  - prometheus/internal
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
   version: 5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f
