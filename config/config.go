@@ -21,27 +21,6 @@ type replications struct {
 	SecurityProvider security.Provider
 }
 
-// TopicConf is the configuration for a specific topic
-type TopicConf struct {
-	Topic       string        `json:"topic"`
-	SourceURL   string        `json:"source_url"`
-	SourceID    string        `json:"source_cluster_id"`
-	TargetURL   string        `json:"target_url"`
-	TargetID    string        `json:"target_cluster_id"`
-	Workers     int           `json:"workers"`
-	Queued      bool          `json:"queued"`
-	QueueGroup  string        `json:"queue_group"`
-	Inspect     string        `json:"inspect"`
-	UpdateFlag  string        `json:"update_flag"`
-	MinAge      string        `json:"age"`
-	Name        string        `json:"name"`
-	MonitorPort int           `json:"monitor"`
-	Advisory    *AdvisoryConf `json:"advisory"`
-	TLS         *TLSConf      `json:"tls"`
-
-	SecurityProvider security.Provider `json:"-"`
-}
-
 // AdvisoryConf configures an advisory target
 type AdvisoryConf struct {
 	Target  string `json:"target"`
@@ -85,12 +64,12 @@ func Load(file string) error {
 	for _, t := range config.Topics {
 		t.SecurityProvider = config.SecurityProvider
 
-		if t.TLS == nil {
-			t.TLS = config.TLS
+		if t.TLSc == nil {
+			t.TLSc = config.TLS
 		}
 
-		if t.TLS != nil {
-			t.SecurityProvider, err = t.TLS.SecurityProvider()
+		if t.TLSc != nil {
+			t.SecurityProvider, err = t.TLSc.SecurityProvider()
 			if err != nil {
 				return fmt.Errorf("could not configure topic %s SSL: %s", t.Name, err)
 			}

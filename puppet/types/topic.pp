@@ -12,5 +12,7 @@ type Stream_replicator::Topic = Struct[{
   monitor => Optional[Integer],
   name => Optional[String],
   advisory => Optional[Stream_replicator::Advisory],
-  tls => Optional[Variant[Stream_replicator::FileSSL, Stream_replicator::PuppetSSL]]
+  tls => Optional[Variant[Stream_replicator::FileSSL, Stream_replicator::PuppetSSL]],
+  disable_target_tls => Optional[Boolean],
+  disable_source_tls => Optional[Boolean],
 }]

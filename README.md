@@ -65,6 +65,8 @@ SSL is supported on the network connections, 2 modes of configuration exist - Pu
 
 The examples below will show a top level `tls` key, you can also put it at a individual topic level if needed.
 
+Here we show a root level `tls` key, but you can also add per topic configuration in case you have different CA's on each end.  Additionally topics support keys `disable_target_tls` and `disable_source_tls` to selectively allow plain text connections on only one side of the topic bridge.
+
 ### Puppet Compatible
 
 If you are a Puppet user you might want to re-use the Puppet CA, a sample SSL configuration can be seen here:
