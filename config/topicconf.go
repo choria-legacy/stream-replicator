@@ -29,5 +29,5 @@ type TopicConf struct {
 
 // TLS determines if the topic has a TLS configuration set
 func (t *TopicConf) TLS() bool {
-	return t.TLSc == nil
+	return t.TLSc != nil
 }
