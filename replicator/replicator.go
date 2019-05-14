@@ -27,7 +27,7 @@ type Copier struct {
 // Setup validates the configuration of the copier and sets defaults where possible
 func (c *Copier) Setup(name string, topic *config.TopicConf) error {
 	c.config = topic
-	c.tls = config.TLS()
+	c.tls = config.TLS() || topic.TLS()
 
 	if c.config.Topic == "" {
 		return fmt.Errorf("a topic is required")

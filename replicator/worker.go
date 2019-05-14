@@ -121,14 +121,26 @@ func (w *worker) connect(ctx context.Context) error {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		w.from = connector.New(w.name, w.tls, connector.Source, w.config, w.log)
+
+		tls := w.tls
+		if w.config.DisableSourceTLS {
+			tls = false
+		}
+
+		w.from = connector.New(w.name, tls, connector.Source, w.config, w.log)
 		w.from.Connect(ctx)
 	}(wg)
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		w.to = connector.New(w.name, w.tls, connector.Target, w.config, w.log)
+
+		tls := w.tls
+		if w.config.DisableTargetTLS {
+			tls = false
+		}
+
+		w.to = connector.New(w.name, tls, connector.Target, w.config, w.log)
 		w.to.Connect(ctx)
 	}(wg)
 
