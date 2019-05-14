@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/05/14|      |Release 0.4.0                                                                                            |
+|2019/05/14|102   |Allow TLS to be disabled on only a specific side of the replication bridge                               |
 |2018/11/28|      |Release 0.3.1                                                                                            |
 |2018/11/02|97    |Fix permissions of the cache store directory                                                             |
 |2018/07/02|      |Release 0.3.0                                                                                            |
