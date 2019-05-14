@@ -1,5 +1,5 @@
-hash: cb99d40fd71a0d7ef7ece21bff0c4f028e0674cef7196ea636f1748b2432f639
-updated: 2018-12-07T18:01:35.374306+01:00
+hash: 85d7b5d7719d39f753d3950a31bf0f89a1d84f72e151551774e4ffb1bdf7a1b3
+updated: 2019-05-14T11:34:15.990966+02:00
 imports:
 - name: github.com/alecthomas/template
   version: a0175ee3bccc567396460bf5acd36800cb10c49c
@@ -14,11 +14,8 @@ imports:
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
   subpackages:
   - quantile
-- name: github.com/boltdb/bolt
-  version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
-  repo: https://github.com/boltdb/bolt
 - name: github.com/choria-io/go-choria
-  version: 684d9b00e1b5d35727bc46bffd3913b2ed45b8e6
+  version: 03dd33caff2b800ad955d52d7b0dfcdee31eda53
   subpackages:
   - build
   - config
@@ -28,7 +25,7 @@ imports:
 - name: github.com/choria-io/go-confkey
   version: 634d2c41860498507b0c7eeb2f8a33b1aa6a809d
 - name: github.com/choria-io/go-security
-  version: 75654ad2139b915791141ab172d0930bf024fec7
+  version: b259ec5ee20647587b1f8a9b1316b333de4ce3ad
   subpackages:
   - filesec
   - puppetsec
@@ -77,39 +74,40 @@ imports:
 - name: github.com/konsorten/go-windows-terminal-sequences
   version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/mattn/go-colorable
-  version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
+  version: 3a70a971f94a22f2fa562ffcc7a0eb45f5daf045
 - name: github.com/mattn/go-isatty
-  version: 3fb116b820352b7f0c281308a4d6250c22d94e27
+  version: c1975dc15c1d481e8da23f6ed313bb071136b98f
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   repo: https://github.com/matttproud/golang_protobuf_extensions
   subpackages:
   - pbutil
 - name: github.com/nats-io/gnatsd
-  version: eed4fbc1458ce110ad1aa1adf904229bc8fda2a7
+  version: 3e64f0bfd1fe4c2cf6599f064ff72fa7af439663
   subpackages:
   - conf
   - logger
   - server
   - server/pse
-  - util
 - name: github.com/nats-io/go-nats
-  version: fb0396ee0bdb8018b0fef30d6d1de798ce99cd05
+  version: 70fe06cee50d4b6f98248d9675fb55f2a3aa7228
   subpackages:
   - encoders/builtin
   - util
 - name: github.com/nats-io/go-nats-streaming
-  version: e15a53f85e4932540600a16b56f6c4f65f58176f
+  version: 7cd94c239033c0405a43454be55a0810d3a3ca89
   subpackages:
   - pb
 - name: github.com/nats-io/nats-streaming-server
-  version: 7b758bb93407505bc1d0cf26d091fc281d99ca0c
+  version: 25d6adac82242303ebfb63628e63685148e6a397
   subpackages:
   - logger
   - server
   - spb
   - stores
   - util
+- name: github.com/nats-io/nkeys
+  version: 1546a3320a8f195a5b5c84aef8309377c2e411d5
 - name: github.com/nats-io/nuid
   version: 28b996b57a46dd0c2aa3a3dc7fa8780878331d00
 - name: github.com/prometheus/client_golang
@@ -135,21 +133,32 @@ imports:
   - nfs
   - xfs
 - name: github.com/sirupsen/logrus
-  version: bcd833dfe83d3cebad139e4a29ed79cb2318bf95
+  version: 8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f
 - name: github.com/tidwall/gjson
-  version: 1e3f6aeaa5bad08d777ea7807b279a07885dd8b2
+  version: eee0b6226f0d1db2675a176fdfaa8419bcad4ca8
 - name: github.com/tidwall/match
   version: 1731857f09b1f38450e2c12409748407822dc6be
+- name: github.com/tidwall/pretty
+  version: 1166b9ac2b65e46a43d8618d30d1554f4652d49b
+- name: go.etcd.io/bbolt
+  version: 63597a96ec0ad9e6d43c3fc81e809909e0237461
+  repo: https://github.com/etcd-io/bbolt
 - name: golang.org/x/crypto
-  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
+  version: 22d7a77e9e5f409e934ed268692e56707cd169e5
   subpackages:
   - bcrypt
   - blowfish
+  - chacha20poly1305
+  - ed25519
+  - ed25519/internal/edwards25519
+  - internal/chacha20
+  - internal/subtle
+  - poly1305
   - ssh/terminal
 - name: golang.org/x/sys
-  version: f7928cfef4d09d1b080aa2b6fd3ca9ba1567c733
-  repo: https://go.googlesource.com/sys
+  version: a5b02f93d862f065920dd6a40dddc66b60d0dec4
   subpackages:
+  - cpu
   - unix
   - windows
   - windows/registry
@@ -170,7 +179,7 @@ testImports:
   - watch
   - winfile
 - name: github.com/onsi/ginkgo
-  version: 2e1be8f7d90e9d3e3e58b0ce470f2f14d075406f
+  version: eea6ad008b96acdaa524f5b409513bf062b500ad
   subpackages:
   - config
   - internal/codelocation
@@ -190,7 +199,7 @@ testImports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: 65fb64232476ad9046e57c26cd0bff3d3a8dc6cd
+  version: 90e289841c1ed79b7a598a7cd9959750cb5e89e2
   subpackages:
   - format
   - internal/assertion
