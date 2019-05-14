@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/05/14|      |Release 0.4.1                                                                                            |
+|2019/05/14|105   |Fix inverted logic while determining if a topic is TLS enabled                                           |
 |2019/05/14|      |Release 0.4.0                                                                                            |
 |2019/05/14|102   |Allow TLS to be disabled on only a specific side of the replication bridge                               |
 |2018/11/28|      |Release 0.3.1                                                                                            |
