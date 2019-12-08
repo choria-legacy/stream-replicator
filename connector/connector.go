@@ -7,8 +7,8 @@ import (
 
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
-	nats "github.com/nats-io/go-nats"
-	"github.com/nats-io/go-nats-streaming"
+	nats "github.com/nats-io/nats.go"
+	"github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
 )
 

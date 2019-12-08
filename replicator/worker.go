@@ -8,7 +8,7 @@ import (
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
 	"github.com/choria-io/stream-replicator/limiter"
-	stan "github.com/nats-io/go-nats-streaming"
+	stan "github.com/nats-io/stan.go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )

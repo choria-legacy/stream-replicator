@@ -2,16 +2,14 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     steps:
       - checkout
       - setup_remote_docker
-      - run: go get github.com/Masterminds/glide
       - run: go get github.com/onsi/ginkgo/ginkgo
-      - run: glide install
       - run: ginkgo -r -skipMeasurements
       - run: mkdir -p /tmp/workspace
       - run: cd .. ; tar -czf /tmp/workspace/stream-replicator.tgz stream-replicator
@@ -22,14 +20,14 @@ jobs:
 
   build_el6_64bit_rpms: &pkg_build
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
       PACKAGE: el6_64
       BUILD: foss
-      BUILDER: choria/packager:el5-go9.2
+      BUILDER: choria/packager:el7-go1.13
 
     steps: &std_build_steps
       - setup_remote_docker
@@ -74,25 +72,25 @@ jobs:
     environment:
       PACKAGE: el6_32
       BUILD: foss
-      BUILDER: choria/packager:el7-go9.2
+      BUILDER: choria/packager:el6-go1.13
 
   build_el7_64bit_rpms:
     <<: *pkg_build
     environment:
       PACKAGE: el7_64
       BUILD: foss
-      BUILDER: choria/packager:el7-go9.2
+      BUILDER: choria/packager:el7-go1.13
 
   build_puppet_module:
     <<: *pkg_build
     environment:
       PACKAGE: puppet
       BUILD: foss
-      BUILDER: choria/packager:el7-go9.2-puppet
+      BUILDER: choria/packager:el7-go1.13-puppet
 
   gather_artifacts:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.13
 
     steps:
       - attach_workspace:
@@ -122,7 +120,6 @@ jobs:
               package_cloud push choria/${REPO}/el/${d} ${i}
             done
           done
-
 
   release_packagecloud:
     <<: *packagecloud_push
@@ -173,39 +170,33 @@ workflows:
       - build_el6_64bit_rpms:
           requires:
             - test
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - build_el7_64bit_rpms:
           requires:
             - test
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - build_puppet_module:
           requires:
             - test
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - gather_artifacts:
           requires:
-             - build_el6_32bit_rpms
-             - build_el6_64bit_rpms
-             - build_el7_64bit_rpms
-             - build_puppet_module
-          filters:
-            *semver_only
+            - build_el6_32bit_rpms
+            - build_el6_64bit_rpms
+            - build_el7_64bit_rpms
+            - build_puppet_module
+          filters: *semver_only
 
       - release_hold:
           type: approval
           requires:
             - gather_artifacts
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - release_packagecloud:
           requires:
             - release_hold
-          filters:
-            *semver_only
+          filters: *semver_only

@@ -1,7 +1,7 @@
 package test
 
 import (
-	gnatsd "github.com/nats-io/gnatsd/server"
+	gnatsd "github.com/nats-io/nats-server/v2/server"
 	stan "github.com/nats-io/nats-streaming-server/server"
 )
 

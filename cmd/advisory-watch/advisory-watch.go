@@ -14,7 +14,7 @@ import (
 	"github.com/choria-io/stream-replicator/advisor"
 	"github.com/fatih/color"
 
-	"github.com/nats-io/go-nats-streaming"
+	"github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/stream-replicator/config"
