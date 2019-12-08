@@ -10,7 +10,7 @@ import (
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
-	nats "github.com/nats-io/go-nats"
+	nats "github.com/nats-io/nats.go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -197,7 +197,7 @@ func advise() {
 	timeout := time.Now().Add(0 - age)
 	expire := time.Now().Add(0 - interval)
 
-	log.Debug("Looking for nodes last seen earlier than %v", timeout)
+	log.Debugf("Looking for nodes last seen earlier than %v", timeout)
 
 	for i, t := range seen {
 		if t.Before(expire) {

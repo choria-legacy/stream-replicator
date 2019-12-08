@@ -13,7 +13,7 @@ import (
 	"github.com/choria-io/stream-replicator/advisor"
 
 	"github.com/choria-io/stream-replicator/config"
-	stan "github.com/nats-io/go-nats-streaming"
+	stan "github.com/nats-io/stan.go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"

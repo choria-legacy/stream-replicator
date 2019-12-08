@@ -1,7 +1,7 @@
 package connector
 
 import (
-	"github.com/nats-io/go-nats-streaming"
+	"github.com/nats-io/stan.go"
 )
 
 type subscription struct {

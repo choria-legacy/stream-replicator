@@ -2,8 +2,6 @@ package advisor
 
 import (
 	"context"
-	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -11,8 +9,6 @@ import (
 	conntest "github.com/choria-io/stream-replicator/connector/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestFederation(t *testing.T) {
@@ -23,17 +19,11 @@ func TestFederation(t *testing.T) {
 var _ = Describe("Advisor", func() {
 	var (
 		ctx      context.Context
-		wg       *sync.WaitGroup
-		log      *logrus.Entry
 		goodconf *config.TopicConf
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		wg = &sync.WaitGroup{}
-		logrus.SetOutput(os.Stdout)
-		log = logrus.WithField("test", true)
-		logrus.SetLevel(logrus.FatalLevel)
 		reset()
 
 		goodconf = &config.TopicConf{

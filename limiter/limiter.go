@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/choria-io/stream-replicator/config"
-	stan "github.com/nats-io/go-nats-streaming"
+	stan "github.com/nats-io/stan.go"
 )
 
 var inspecter Inspecter
