@@ -6,3 +6,4 @@ stream-replicator
 stream-replicator-*-*-*
 limiter/memory/testdata/test.json
 sr.yaml
+.idea
