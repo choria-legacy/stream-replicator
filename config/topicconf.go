@@ -1,7 +1,7 @@
 package config
 
 import (
-	security "github.com/choria-io/go-security"
+	security "github.com/choria-io/go-choria/providers/security"
 )
 
 // TopicConf is the configuration for a specific topic

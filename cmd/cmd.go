@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/choria-io/go-security/puppetsec"
+	"github.com/choria-io/go-choria/providers/security/puppetsec"
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/replicator"
 	"github.com/sirupsen/logrus"

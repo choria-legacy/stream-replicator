@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
-	"github.com/choria-io/go-security"
-	"github.com/choria-io/go-security/filesec"
-	"github.com/choria-io/go-security/puppetsec"
+	"github.com/choria-io/go-choria/providers/security"
+	"github.com/choria-io/go-choria/providers/security/filesec"
+	"github.com/choria-io/go-choria/providers/security/puppetsec"
 	"github.com/sirupsen/logrus"
 )
 
