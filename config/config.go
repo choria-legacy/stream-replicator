@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/choria-io/go-security"
+	"github.com/choria-io/go-choria/providers/security"
 	"github.com/ghodss/yaml"
 )
 
