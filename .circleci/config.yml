@@ -18,14 +18,14 @@ jobs:
           paths:
             - stream-replicator.tgz
 
-  build_el6_64bit_rpms: &pkg_build
+  build_el7_64bit_rpms: &pkg_build
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
 
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
-      PACKAGE: el6_64
+      PACKAGE: el7_64
       BUILD: foss
       BUILDER: choria/packager:el7-go1.13
 
@@ -67,20 +67,6 @@ jobs:
           paths:
             - artifacts
 
-  build_el6_32bit_rpms:
-    <<: *pkg_build
-    environment:
-      PACKAGE: el6_32
-      BUILD: foss
-      BUILDER: choria/packager:el6-go1.13
-
-  build_el7_64bit_rpms:
-    <<: *pkg_build
-    environment:
-      PACKAGE: el7_64
-      BUILD: foss
-      BUILDER: choria/packager:el7-go1.13
-
   build_puppet_module:
     <<: *pkg_build
     environment:
@@ -104,7 +90,7 @@ jobs:
       REPO: nightly
 
     docker:
-      - image: circleci/ruby
+      - image: circleci/ruby:2.7
 
     steps:
       - attach_workspace:
@@ -113,7 +99,7 @@ jobs:
       - run: gem install package_cloud
 
       - run: |
-          for d in 6 7
+          for d in 7
           do
             for i in $(find /tmp/workspace -name \*.el${d}.\*.rpm | grep -v src.rpm)
             do
@@ -128,28 +114,28 @@ jobs:
 
 workflows:
   version: 2
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - test
-      - build_el7_64bit_rpms:
-          context: org-global
-          requires:
-            - test
-
-      - gather_artifacts:
-          requires:
-            - build_el7_64bit_rpms
-
-      - nightly_packagecloud:
-          requires:
-            - gather_artifacts
+#  nightly:
+#    triggers:
+#      - schedule:
+#          cron: "0 0 * * *"
+#          filters:
+#            branches:
+#              only:
+#                - master
+#    jobs:
+#      - test
+#      - build_el7_64bit_rpms:
+#          context: org-global
+#          requires:
+#            - test
+#
+#      - gather_artifacts:
+#          requires:
+#            - build_el7_64bit_rpms
+#
+#      - nightly_packagecloud:
+#          requires:
+#            - gather_artifacts
 
   test_and_ship:
     jobs:
@@ -158,7 +144,7 @@ workflows:
             tags:
               only: /.+/
 
-      - build_el6_32bit_rpms:
+      - build_el7_64bit_rpms:
           requires:
             - test
           filters: &semver_only
@@ -167,16 +153,6 @@ workflows:
             branches:
               ignore: /.*/
 
-      - build_el6_64bit_rpms:
-          requires:
-            - test
-          filters: *semver_only
-
-      - build_el7_64bit_rpms:
-          requires:
-            - test
-          filters: *semver_only
-
       - build_puppet_module:
           requires:
             - test
@@ -184,8 +160,6 @@ workflows:
 
       - gather_artifacts:
           requires:
-            - build_el6_32bit_rpms
-            - build_el6_64bit_rpms
             - build_el7_64bit_rpms
             - build_puppet_module
           filters: *semver_only
