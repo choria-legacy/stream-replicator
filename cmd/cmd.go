@@ -17,7 +17,7 @@ import (
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/replicator"
 	"github.com/sirupsen/logrus"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -94,7 +94,7 @@ func runEnroll() {
 
 	wait, _ := time.ParseDuration("30m")
 
-	err = prov.Enroll(ctx, wait, func(try int) { fmt.Printf("Attempting to download certificate for %s, try %d.\n", enrollIdentity, try) })
+	err = prov.Enroll(ctx, wait, func(_ string, try int) { fmt.Printf("Attempting to download certificate for %s, try %d.\n", enrollIdentity, try) })
 	if err != nil {
 		logrus.Fatalf("Could not enroll with the Puppet CA: %s", err)
 	}

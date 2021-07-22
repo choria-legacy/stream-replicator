@@ -97,7 +97,7 @@ var _ = Describe("Advisor", func() {
 			}
 
 			err := Configure(true, c)
-			Expect(err).To(MatchError("age cannot be parsed as a duration: time: invalid duration x"))
+			Expect(err).To(MatchError("age cannot be parsed as a duration: time: invalid duration \"x\""))
 			Expect(configured).To(BeFalse())
 		})
 

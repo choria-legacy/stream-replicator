@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.16
 
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
@@ -20,14 +20,14 @@ jobs:
 
   build_el7_64bit_rpms: &pkg_build
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.16
 
     working_directory: /go/src/github.com/choria-io/stream-replicator
 
     environment:
       PACKAGE: el7_64
       BUILD: foss
-      BUILDER: choria/packager:el7-go1.13
+      BUILDER: choria/packager:el7-go1.16
 
     steps: &std_build_steps
       - setup_remote_docker
@@ -72,11 +72,11 @@ jobs:
     environment:
       PACKAGE: puppet
       BUILD: foss
-      BUILDER: choria/packager:el7-go1.13-puppet
+      BUILDER: choria/packager:el7-go1.16-puppet
 
   gather_artifacts:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.16
 
     steps:
       - attach_workspace:
