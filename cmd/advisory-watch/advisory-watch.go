@@ -19,14 +19,14 @@ import (
 
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
 	cfile  string
 	topic  string
 	name   string
-	conf   config.TopicConf
+	conf   *config.TopicConf
 	err    error
 	conn   stan.Conn
 	log    *logrus.Entry
@@ -48,7 +48,7 @@ func connect() {
 		c = connector.New(name, false, connector.Target, conf, log)
 	}
 
-	conn = c.Connect(ctx)
+	c.Connect(ctx)
 }
 
 func parseCLI() {
@@ -172,8 +172,5 @@ func main() {
 
 	conn.Subscribe(conf.Advisory.Target, viewf, opts...)
 
-	select {
-	case <-ctx.Done():
-		return
-	}
+	<-ctx.Done()
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/choria-io/stream-replicator/config"
 	conntest "github.com/choria-io/stream-replicator/connector/test"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

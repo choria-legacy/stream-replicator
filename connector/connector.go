@@ -7,7 +7,7 @@ import (
 
 	"github.com/choria-io/stream-replicator/backoff"
 	"github.com/choria-io/stream-replicator/config"
-	nats "github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
 )
@@ -149,7 +149,7 @@ func (c *Connection) connectSTAN(ctx context.Context) {
 			c.log.Warnf("%s initial connection to the NATS Streaming broker cluster failed: %s", c.name, err)
 
 			if ctx.Err() != nil {
-				c.log.Errorf("%s initial connection cancelled due to shut down", c.name)
+				c.log.Errorf("%s initial connection canceled due to shut down", c.name)
 				return
 			}
 
@@ -164,8 +164,6 @@ func (c *Connection) connectSTAN(ctx context.Context) {
 
 		break
 	}
-
-	return
 }
 
 func (c *Connection) connectNATS(ctx context.Context) (natsc *nats.Conn) {
@@ -200,7 +198,7 @@ func (c *Connection) connectNATS(ctx context.Context) (natsc *nats.Conn) {
 			c.log.Warnf("%s initial connection to the NATS broker cluster (%s) failed: %s", c.name, c.url, err)
 
 			if ctx.Err() != nil {
-				c.log.Errorf("%s initial connection cancelled due to shut down", c.name)
+				c.log.Errorf("%s initial connection canceled due to shut down", c.name)
 				return nil
 			}
 
@@ -213,7 +211,7 @@ func (c *Connection) connectNATS(ctx context.Context) (natsc *nats.Conn) {
 			case <-timer.C:
 				continue
 			case <-ctx.Done():
-				c.log.Errorf("%s initial connection cancelled due to shut down", c.name)
+				c.log.Errorf("%s initial connection canceled due to shut down", c.name)
 				return nil
 			}
 		}

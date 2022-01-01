@@ -7,14 +7,10 @@ import (
 	"time"
 
 	"github.com/choria-io/stream-replicator/config"
-	stan "github.com/nats-io/stan.go"
+	"github.com/nats-io/stan.go"
 )
 
 var inspecter Inspecter
-
-var key string
-var age time.Duration
-var topic string
 
 type Inspecter interface {
 	Configure(ctx context.Context, wg *sync.WaitGroup, inspectKey string, updateFlagKey string, age time.Duration, topic string) error

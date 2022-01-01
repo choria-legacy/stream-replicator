@@ -8,7 +8,7 @@ import (
 	"github.com/choria-io/stream-replicator/config"
 	"github.com/choria-io/stream-replicator/connector"
 	"github.com/choria-io/stream-replicator/limiter"
-	stan "github.com/nats-io/stan.go"
+	"github.com/nats-io/stan.go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
@@ -56,14 +56,10 @@ func (w *worker) Run(ctx context.Context, wg *sync.WaitGroup) {
 		return
 	}
 
-	select {
-	case <-ctx.Done():
-		w.log.Infof("%s existing", w.name)
-		w.from.Close()
-		w.to.Close()
-
-		return
-	}
+	<-ctx.Done()
+	w.log.Infof("%s existing", w.name)
+	w.from.Close()
+	w.to.Close()
 }
 
 func (w *worker) copyf(msg *stan.Msg) {
@@ -108,11 +104,7 @@ func (w *worker) subscribe() error {
 		stan.MaxInflight(10),
 	}
 
-	var err error
-
-	err = w.from.Subscribe(w.config.Topic, w.config.QueueGroup, w.copyf, opts...)
-
-	return err
+	return w.from.Subscribe(w.config.Topic, w.config.QueueGroup, w.copyf, opts...)
 }
 
 func (w *worker) connect(ctx context.Context) error {
