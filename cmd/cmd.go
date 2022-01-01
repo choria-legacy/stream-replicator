@@ -25,7 +25,6 @@ var (
 	cancel  func()
 	ctx     context.Context
 	version = "unknown"
-	sha     = "unknown"
 
 	cfile   string
 	topic   string
@@ -73,7 +72,7 @@ func runEnroll() {
 		DisableSRV: true,
 	}
 
-	re := regexp.MustCompile("^((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9]))\\:(\\d+)$")
+	re := regexp.MustCompile(`^((([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]))\:(\d+)$`)
 
 	if re.MatchString(enrollCA) {
 		parts := strings.Split(enrollCA, ":")
@@ -94,7 +93,9 @@ func runEnroll() {
 
 	wait, _ := time.ParseDuration("30m")
 
-	err = prov.Enroll(ctx, wait, func(_ string, try int) { fmt.Printf("Attempting to download certificate for %s, try %d.\n", enrollIdentity, try) })
+	err = prov.Enroll(ctx, wait, func(_ string, try int) {
+		fmt.Printf("Attempting to download certificate for %s, try %d.\n", enrollIdentity, try)
+	})
 	if err != nil {
 		logrus.Fatalf("Could not enroll with the Puppet CA: %s", err)
 	}

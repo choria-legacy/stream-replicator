@@ -97,10 +97,8 @@ func (c *Copier) Run(ctx context.Context, wg *sync.WaitGroup) {
 		go w.Run(ctx, wg)
 	}
 
-	select {
-	case <-ctx.Done():
-		c.cancel()
-	}
+	<-ctx.Done()
+	c.cancel()
 }
 
 // SetupPrometheus starts a prometheus exporter

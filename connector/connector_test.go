@@ -8,7 +8,7 @@ import (
 
 	"github.com/choria-io/stream-replicator/config"
 	conntest "github.com/choria-io/stream-replicator/connector/test"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
 )
@@ -22,7 +22,7 @@ var _ = Describe("Connector", func() {
 	var log *logrus.Entry
 	var conf *config.TopicConf
 
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		logrus.SetOutput(os.Stdout)
 		log = logrus.WithField("test", true)
 		logrus.SetLevel(logrus.FatalLevel)
